@@ -1,0 +1,7 @@
+tensorflow
+huggingface_hub
+tf2onnx
+onnx
+onnxruntime
+onnxconverter_common
+sympy
