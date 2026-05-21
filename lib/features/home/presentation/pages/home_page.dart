@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/model_config.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../services/ml/onnx_inference_service.dart';
+import '../../../restore/presentation/bloc/restore_bloc.dart';
+import '../../../restore/presentation/pages/upload_page.dart';
 import '../widgets/restoration_type_card.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  void _navigateToRestore(BuildContext context, ModelType modelType) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => RestoreBloc(inferenceService: sl<OnnxInferenceService>()),
+          child: UploadPage(modelType: modelType),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,60 +60,25 @@ class HomePage extends StatelessWidget {
         Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.auto_fix_high_rounded,
-                color: AppColors.onSecondary,
-                size: 22,
-              ),
+              width: 40, height: 40,
+              decoration: BoxDecoration(color: AppColors.secondary, borderRadius: BorderRadius.circular(10)),
+              child: const Icon(Icons.auto_fix_high_rounded, color: AppColors.onSecondary, size: 22),
             ),
             const Spacer(),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.settings_outlined,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.settings_outlined, color: AppColors.onSurfaceVariant)),
           ],
         ),
         const SizedBox(height: 24),
-        Text(
-          AppConstants.appName,
-          style: GoogleFonts.manrope(
-            fontSize: 32,
-            fontWeight: FontWeight.w300,
-            color: AppColors.onSurface,
-            letterSpacing: -0.5,
-          ),
-        ),
+        Text(AppConstants.appName, style: GoogleFonts.manrope(fontSize: 32, fontWeight: FontWeight.w300, color: AppColors.onSurface, letterSpacing: -0.5)),
         const SizedBox(height: 8),
-        Text(
-          'Kembalikan keindahan foto Anda\ndengan kecerdasan buatan.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.onSurfaceVariant,
-            height: 1.5,
-          ),
-        ),
+        Text('Kembalikan keindahan foto Anda\ndengan kecerdasan buatan.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant, height: 1.5)),
       ],
     );
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {
-    return Text(
-      title,
-      style: GoogleFonts.manrope(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppColors.onSurfaceVariant,
-        letterSpacing: 0.8,
-      ),
-    );
+    return Text(title, style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.onSurfaceVariant, letterSpacing: 0.8));
   }
 
   Widget _buildRestorationCards(BuildContext context) {
@@ -107,9 +89,7 @@ class HomePage extends StatelessWidget {
           subtitle: 'Cerahkan foto gelap atau low-light',
           icon: Icons.wb_sunny_rounded,
           iconColor: const Color(0xFFE6A817),
-          onTap: () {
-            // TODO: Navigate to upload with low-light model
-          },
+          onTap: () => _navigateToRestore(context, ModelType.lowLight),
         ),
         const SizedBox(height: 12),
         RestorationTypeCard(
@@ -117,9 +97,7 @@ class HomePage extends StatelessWidget {
           subtitle: 'Pertajam foto yang buram atau goyang',
           icon: Icons.center_focus_strong_rounded,
           iconColor: AppColors.secondary,
-          onTap: () {
-            // TODO: Navigate to upload with deblurring model
-          },
+          onTap: () => _navigateToRestore(context, ModelType.deblurring),
         ),
       ],
     );
@@ -128,26 +106,14 @@ class HomePage extends StatelessWidget {
   Widget _buildInfoSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryContainer.withAlpha(77),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: AppColors.secondaryContainer.withAlpha(77), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
-          Icon(
-            Icons.shield_outlined,
-            color: AppColors.secondary,
-            size: 20,
-          ),
+          Icon(Icons.shield_outlined, color: AppColors.secondary, size: 20),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'Semua proses berjalan di perangkat Anda. Foto tidak dikirim ke server manapun.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.onSecondaryContainer,
-                height: 1.4,
-              ),
-            ),
+            child: Text('Semua proses berjalan di perangkat Anda. Foto tidak dikirim ke server manapun.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSecondaryContainer, height: 1.4)),
           ),
         ],
       ),
