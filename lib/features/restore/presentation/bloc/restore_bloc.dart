@@ -1,105 +1,105 @@
-import 'dart:io';
+/// File ini berisi logika BLoC untuk proses restorasi foto.
+/// Menangani event dari UI untuk memulai proses AI, dan mengelola state proses (loading/sukses/gagal).
+import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/errors/exceptions.dart';
+import 'package:equatable/equatable.dart';
 import '../../../../services/ml/onnx_inference_service.dart';
-import 'restore_event.dart';
-import 'restore_state.dart';
+import '../../../../core/constants/model_config.dart';
+
+// --- Events ---
+
+abstract class RestoreEvent extends Equatable {
+  const RestoreEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+// Event untuk memulai pemrosesan inferensi ML pada sebuah gambar.
+class StartRestoration extends RestoreEvent {
+  final Uint8List imageBytes;
+  final ModelType modelType;
+
+  const StartRestoration({
+    required this.imageBytes,
+    required this.modelType,
+  });
+
+  @override
+  List<Object> get props => [imageBytes, modelType];
+}
+
+// Event untuk mereset kondisi layar kembali ke awal sebelum ada gambar yang diproses.
+class ResetRestoration extends RestoreEvent {}
+
+// --- States ---
+
+abstract class RestoreState extends Equatable {
+  const RestoreState();
+
+  @override
+  List<Object> get props => [];
+}
+
+// State awal: Belum ada pemrosesan.
+class RestoreInitial extends RestoreState {}
+
+// State pemrosesan: Menampilkan animasi loading dan progress di UI.
+class RestoreProcessing extends RestoreState {}
+
+// State berhasil: Inferensi selesai dan mengembalikan objek RestorationResult.
+class RestoreSuccess extends RestoreState {
+  final RestorationResult result;
+
+  const RestoreSuccess(this.result);
+
+  @override
+  List<Object> get props => [result];
+}
+
+// State gagal: Terjadi error, model tidak dapat diload, atau kehabisan memori.
+class RestoreFailure extends RestoreState {
+  final String errorMessage;
+
+  const RestoreFailure(this.errorMessage);
+
+  @override
+  List<Object> get props => [errorMessage];
+}
+
+// --- BLoC ---
 
 class RestoreBloc extends Bloc<RestoreEvent, RestoreState> {
-  final OnnxInferenceService _inferenceService;
-  String? _selectedImagePath;
-  ModelType? _selectedModelType;
+  final OnnxInferenceService inferenceService;
 
-  RestoreBloc({required OnnxInferenceService inferenceService})
-      : _inferenceService = inferenceService,
-        super(const RestoreInitial()) {
-    on<RestoreImageSelected>(_onImageSelected);
-    on<RestoreStarted>(_onStarted);
-    on<RestoreCancelled>(_onCancelled);
-    on<RestoreReset>(_onReset);
+  RestoreBloc({required this.inferenceService}) : super(RestoreInitial()) {
+    // Mendaftarkan event untuk memulai proses restorasi.
+    on<StartRestoration>(_onStartRestoration);
+    
+    // Mendaftarkan event untuk mereset BLoC state.
+    on<ResetRestoration>(_onResetRestoration);
   }
 
-  void _onImageSelected(RestoreImageSelected event, Emitter<RestoreState> emit) {
-    _selectedImagePath = event.imagePath;
-    _selectedModelType = event.modelType;
-    emit(RestoreImageReady(imagePath: event.imagePath, modelType: event.modelType));
-  }
-
-  Future<void> _onStarted(RestoreStarted event, Emitter<RestoreState> emit) async {
-    if (_selectedImagePath == null || _selectedModelType == null) return;
-
+  // Menjalankan proses inferensi ONNX pada foto melalui OnnxInferenceService.
+  Future<void> _onStartRestoration(
+    StartRestoration event,
+    Emitter<RestoreState> emit,
+  ) async {
+    emit(RestoreProcessing());
+    
     try {
-      emit(const RestoreProcessing(
-        phase: RestorePhase.preprocessing,
-        message: 'Mempersiapkan gambar...',
-      ));
-
-      final imageBytes = await File(_selectedImagePath!).readAsBytes();
-
-      emit(const RestoreProcessing(
-        phase: RestorePhase.inference,
-        message: 'Menjalankan AI...',
-      ));
-
-      final result = await _inferenceService.restore(
-        imageBytes: imageBytes,
-        modelType: _selectedModelType!,
+      final result = await inferenceService.restore(
+        imageBytes: event.imageBytes,
+        modelType: event.modelType,
       );
-
-      emit(const RestoreProcessing(
-        phase: RestorePhase.postprocessing,
-        message: 'Menyimpan hasil...',
-      ));
-
-      emit(RestoreSuccess(
-        originalBytes: result.originalBytes,
-        restoredBytes: result.restoredBytes,
-        modelType: _selectedModelType!,
-        processingTimeMs: result.processingTimeMs,
-        inputWidth: result.inputWidth,
-        inputHeight: result.inputHeight,
-      ));
-    } on InsufficientMemoryException {
-      emit(const RestoreFailure(
-        message: 'Memori tidak cukup. Tutup aplikasi lain dan coba lagi.',
-        actionLabel: 'Coba Lagi',
-      ));
-    } on ModelLoadException {
-      emit(const RestoreFailure(
-        message: 'Gagal memuat model AI. Pastikan aplikasi terinstal dengan benar.',
-      ));
-    } on ImageProcessingException {
-      emit(const RestoreFailure(
-        message: 'Format gambar tidak didukung atau file rusak.',
-        actionLabel: 'Pilih Foto Lain',
-      ));
-    } on InferenceException {
-      emit(const RestoreFailure(
-        message: 'Terjadi kesalahan saat memproses foto. Silakan coba lagi.',
-        actionLabel: 'Coba Lagi',
-      ));
+      emit(RestoreSuccess(result));
     } catch (e) {
-      emit(RestoreFailure(
-        message: 'Terjadi kesalahan tak terduga: $e',
-        actionLabel: 'Kembali',
-      ));
+      emit(RestoreFailure('Proses restorasi gagal: $e'));
     }
   }
 
-  void _onCancelled(RestoreCancelled event, Emitter<RestoreState> emit) {
-    if (_selectedImagePath != null && _selectedModelType != null) {
-      emit(RestoreImageReady(
-        imagePath: _selectedImagePath!,
-        modelType: _selectedModelType!,
-      ));
-    } else {
-      emit(const RestoreInitial());
-    }
-  }
-
-  void _onReset(RestoreReset event, Emitter<RestoreState> emit) {
-    _selectedImagePath = null;
-    _selectedModelType = null;
-    emit(const RestoreInitial());
+  // Mengembalikan state aplikasi ke mode pilih foto.
+  void _onResetRestoration(ResetRestoration event, Emitter<RestoreState> emit) {
+    emit(RestoreInitial());
   }
 }
