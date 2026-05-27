@@ -26,4 +26,11 @@ class AppColors {
   
   // Warna garis tepi (border) atau pembatas.
   static const Color outline = Color(0xFFE4E2E2);
+
+  // --- Tambahan warna dari audit ---
+  static const Color surface = Color(0xFFFDFCF8);
+  static const Color onSurface = Color(0xFF1B1C1C);
+  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const Color outlineVariant = Color(0xFFC4C7C5);
+  static const Color accent = Color(0xFF6B8B89);
 }
