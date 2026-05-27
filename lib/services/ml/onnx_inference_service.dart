@@ -8,30 +8,10 @@ import 'model_manager.dart';
 import 'image_preprocessor.dart';
 import 'image_postprocessor.dart';
 import 'tile_processor.dart';
+import '../../features/restore/domain/entities/restoration_result.dart';
+import '../../features/restore/domain/repositories/i_restore_repository.dart';
 
-class RestorationResult {
-  final Uint8List originalBytes;
-  final Uint8List restoredBytes;
-  final int inputWidth;
-  final int inputHeight;
-  final int outputWidth;
-  final int outputHeight;
-  final int processingTimeMs;
-  final InferenceStrategy strategy;
-
-  const RestorationResult({
-    required this.originalBytes,
-    required this.restoredBytes,
-    required this.inputWidth,
-    required this.inputHeight,
-    required this.outputWidth,
-    required this.outputHeight,
-    required this.processingTimeMs,
-    required this.strategy,
-  });
-}
-
-class OnnxInferenceService {
+class OnnxInferenceService implements IRestoreRepository {
   final ModelManager _modelManager;
   final ImagePreprocessor _preprocessor;
   final ImagePostprocessor _postprocessor;
@@ -47,10 +27,11 @@ class OnnxInferenceService {
         _postprocessor = postprocessor,
         _tileProcessor = tileProcessor;
 
-  Future<RestorationResult> restore({
-    required Uint8List imageBytes,
-    required ModelType modelType,
-  }) async {
+  @override
+  Future<RestorationResult> restoreImage(
+    Uint8List imageBytes, 
+    ModelType modelType,
+  ) async {
     final stopwatch = Stopwatch()..start();
 
     try {

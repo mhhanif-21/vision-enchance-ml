@@ -2,29 +2,35 @@
 /// Berfungsi sebagai jembatan antara logika BLoC dan penyimpanan lokal.
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/restoration_model.dart';
+import '../../domain/repositories/i_history_repository.dart';
+import '../../domain/entities/restoration_entity.dart';
 
-class HistoryRepositoryImpl {
+class HistoryRepositoryImpl implements IHistoryRepository {
   // Nama box Hive yang digunakan untuk menyimpan riwayat.
   static const String boxName = 'history_box';
 
   // Menyimpan riwayat restorasi baru ke dalam Hive.
-  Future<void> saveRestoration(RestorationModel restoration) async {
+  @override
+  Future<void> saveRestoration(RestorationEntity restoration) async {
     final box = Hive.box<RestorationModel>(boxName);
-    await box.put(restoration.id, restoration);
+    final model = RestorationModel.fromEntity(restoration);
+    await box.put(model.id, model);
   }
 
   // Mengambil semua riwayat restorasi, diurutkan dari yang terbaru ke terlama.
-  Future<List<RestorationModel>> getAllHistory() async {
+  @override
+  Future<List<RestorationEntity>> getAllHistory() async {
     final box = Hive.box<RestorationModel>(boxName);
     final history = box.values.toList();
     
     // Mengurutkan data secara descending (terbaru di atas).
     history.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     
-    return history;
+    return history.map((model) => model.toEntity()).toList();
   }
 
   // Menghapus satu riwayat restorasi berdasarkan ID.
+  @override
   Future<void> deleteHistory(String id) async {
     final box = Hive.box<RestorationModel>(boxName);
     await box.delete(id);
@@ -34,5 +40,12 @@ class HistoryRepositoryImpl {
   Future<void> clearAllHistory() async {
     final box = Hive.box<RestorationModel>(boxName);
     await box.clear();
+  }
+
+  // Menghapus beberapa riwayat sekaligus berdasarkan daftar ID
+  @override
+  Future<void> deleteMultipleHistory(List<String> ids) async {
+    final box = Hive.box<RestorationModel>(boxName);
+    await box.deleteAll(ids);
   }
 }

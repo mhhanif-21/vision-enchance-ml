@@ -1,6 +1,7 @@
 /// Model data untuk riwayat restorasi foto yang disimpan ke dalam Hive.
 /// Model ini menggunakan HiveObject agar mudah diperbarui atau dihapus.
 import 'package:hive/hive.dart';
+import '../../domain/entities/restoration_entity.dart';
 
 part 'restoration_model.g.dart';
 
@@ -33,4 +34,26 @@ class RestorationModel extends HiveObject {
     required this.modelType,
     required this.createdAt,
   });
+
+  // Mengubah model data ini menjadi entitas domain (RestorationEntity)
+  RestorationEntity toEntity() {
+    return RestorationEntity(
+      id: id,
+      originalImagePath: originalImagePath,
+      restoredImagePath: restoredImagePath,
+      modelType: modelType,
+      createdAt: createdAt,
+    );
+  }
+
+  // Membuat model data dari entitas domain (RestorationEntity)
+  factory RestorationModel.fromEntity(RestorationEntity entity) {
+    return RestorationModel(
+      id: entity.id,
+      originalImagePath: entity.originalImagePath,
+      restoredImagePath: entity.restoredImagePath,
+      modelType: entity.modelType,
+      createdAt: entity.createdAt,
+    );
+  }
 }
