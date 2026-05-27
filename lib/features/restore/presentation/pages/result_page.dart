@@ -9,8 +9,10 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../services/ml/onnx_inference_service.dart';
+import '../../../../services/storage/file_storage_service.dart';
+import '../../../../core/di/injection.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
-import '../../../history/data/models/restoration_model.dart';
+import '../../../history/domain/entities/restoration_entity.dart';
 
 class ResultPage extends StatefulWidget {
   final RestorationResult result;
@@ -32,30 +34,26 @@ class _ResultPageState extends State<ResultPage> {
     setState(() => _isSaving = true);
 
     try {
-      // Mendapatkan direktori internal aplikasi
-      final appDir = await getApplicationDocumentsDirectory();
+      final storage = sl<FileStorageService>();
       final uuid = const Uuid().v4();
       
-      // Menyimpan file gambar asli
-      final originalFile = File('${appDir.path}/ori_$uuid.jpg');
-      await originalFile.writeAsBytes(widget.result.originalBytes);
-      
-      // Menyimpan file gambar hasil restorasi
-      final restoredFile = File('${appDir.path}/res_$uuid.jpg');
-      await restoredFile.writeAsBytes(widget.result.restoredBytes);
+      // Menyimpan file menggunakan FileStorageService
+      final originalPath = await storage.saveOriginal(uuid, widget.result.originalBytes);
+      final restoredPath = await storage.saveRestored(uuid, widget.result.restoredBytes);
+      // Opsional: simpan thumbnail jika diperlukan (di-skip agar cepat)
 
       // Membuat model data untuk disimpan ke Hive
-      final model = RestorationModel(
+      final entity = RestorationEntity(
         id: uuid,
-        originalImagePath: originalFile.path,
-        restoredImagePath: restoredFile.path,
-        modelType: widget.result.strategy.name,
+        originalImagePath: originalPath,
+        restoredImagePath: restoredPath,
+        modelType: widget.result.modelType.name,
         createdAt: DateTime.now(),
       );
 
       // Menyimpan ke database melalui BLoC
       if (mounted) {
-        context.read<HistoryBloc>().add(SaveHistory(model));
+        context.read<HistoryBloc>().add(SaveHistory(entity));
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Gambar berhasil disimpan ke History!')),
         );
