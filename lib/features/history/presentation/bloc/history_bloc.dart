@@ -1,9 +1,9 @@
-/// File ini berisi logika BLoC untuk mengelola riwayat restorasi foto.
-/// BLoC ini mengambil data dari HistoryRepositoryImpl dan menyediakannya ke UI.
+// File ini berisi logika BLoC untuk mengelola riwayat restorasi foto.
+// BLoC ini mengambil data dari ManageHistoryUseCase dan menyediakannya ke UI.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../data/models/restoration_model.dart';
-import '../../data/repositories/history_repository_impl.dart';
+import '../../domain/entities/restoration_entity.dart';
+import '../../domain/usecases/manage_history_usecase.dart';
 
 // --- Events ---
 
@@ -28,7 +28,7 @@ class DeleteHistory extends HistoryEvent {
 
 // Event untuk menyimpan riwayat baru.
 class SaveHistory extends HistoryEvent {
-  final RestorationModel restoration;
+  final RestorationEntity restoration;
   
   const SaveHistory(this.restoration);
 
@@ -50,7 +50,7 @@ class HistoryLoading extends HistoryState {}
 
 // State saat riwayat berhasil dimuat dan siap ditampilkan.
 class HistoryLoaded extends HistoryState {
-  final List<RestorationModel> historyList;
+  final List<RestorationEntity> historyList;
 
   const HistoryLoaded(this.historyList);
 
@@ -71,9 +71,9 @@ class HistoryError extends HistoryState {
 // --- BLoC ---
 
 class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
-  final HistoryRepositoryImpl repository;
+  final ManageHistoryUseCase useCase;
 
-  HistoryBloc({required this.repository}) : super(HistoryLoading()) {
+  HistoryBloc({required this.useCase}) : super(HistoryLoading()) {
     // Mendaftarkan handler untuk event pemuatan data.
     on<LoadHistory>(_onLoadHistory);
     
@@ -88,7 +88,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   Future<void> _onLoadHistory(LoadHistory event, Emitter<HistoryState> emit) async {
     emit(HistoryLoading());
     try {
-      final history = await repository.getAllHistory();
+      final history = await useCase.getAllHistory();
       emit(HistoryLoaded(history));
     } catch (e) {
       emit(HistoryError('Gagal memuat riwayat: $e'));
@@ -98,7 +98,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   // Fungsi untuk menyimpan riwayat baru.
   Future<void> _onSaveHistory(SaveHistory event, Emitter<HistoryState> emit) async {
     try {
-      await repository.saveRestoration(event.restoration);
+      await useCase.saveRestoration(event.restoration);
       add(LoadHistory()); // Muat ulang setelah disimpan
     } catch (e) {
       emit(HistoryError('Gagal menyimpan riwayat: $e'));
@@ -108,7 +108,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   // Fungsi untuk menghapus riwayat dari database Hive.
   Future<void> _onDeleteHistory(DeleteHistory event, Emitter<HistoryState> emit) async {
     try {
-      await repository.deleteHistory(event.id);
+      await useCase.deleteHistory(event.id);
       // Memuat ulang data setelah penghapusan sukses.
       add(LoadHistory());
     } catch (e) {

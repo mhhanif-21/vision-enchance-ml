@@ -3,7 +3,8 @@
 import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../../services/ml/onnx_inference_service.dart';
+import '../../domain/entities/restoration_result.dart';
+import '../../domain/usecases/restore_image_usecase.dart';
 import '../../../../core/constants/model_config.dart';
 
 // --- Events ---
@@ -70,9 +71,9 @@ class RestoreFailure extends RestoreState {
 // --- BLoC ---
 
 class RestoreBloc extends Bloc<RestoreEvent, RestoreState> {
-  final OnnxInferenceService inferenceService;
+  final RestoreImageUseCase useCase;
 
-  RestoreBloc({required this.inferenceService}) : super(RestoreInitial()) {
+  RestoreBloc({required this.useCase}) : super(RestoreInitial()) {
     // Mendaftarkan event untuk memulai proses restorasi.
     on<StartRestoration>(_onStartRestoration);
     
@@ -80,7 +81,7 @@ class RestoreBloc extends Bloc<RestoreEvent, RestoreState> {
     on<ResetRestoration>(_onResetRestoration);
   }
 
-  // Menjalankan proses inferensi ONNX pada foto melalui OnnxInferenceService.
+  // Menjalankan proses inferensi ONNX pada foto melalui UseCase.
   Future<void> _onStartRestoration(
     StartRestoration event,
     Emitter<RestoreState> emit,
@@ -88,9 +89,9 @@ class RestoreBloc extends Bloc<RestoreEvent, RestoreState> {
     emit(RestoreProcessing());
     
     try {
-      final result = await inferenceService.restore(
-        imageBytes: event.imageBytes,
-        modelType: event.modelType,
+      final result = await useCase.execute(
+        event.imageBytes,
+        event.modelType,
       );
       emit(RestoreSuccess(result));
     } catch (e) {
