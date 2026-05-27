@@ -57,12 +57,9 @@ class OnnxInferenceService {
       final preprocessed = _preprocessor.preprocess(imageBytes, modelType);
       final session = await _modelManager.getSession(modelType);
 
-      final useTiling = MemoryUtils.needsTiling(
-        modelType,
-        preprocessed.width,
-        preprocessed.height,
-        DeviceTier.mid,
-      );
+      // Menonaktifkan Tiling sesuai permintaan agar proses deblurring selesai di bawah 30 detik.
+      // Gambar akan di-resize langsung ke "sweet spot" resolution (misal: 512x512).
+      const bool useTiling = false;
 
       late final Uint8List restoredBytes;
       late final int outWidth;
@@ -73,6 +70,7 @@ class OnnxInferenceService {
         final tiledResult = await _runTiledInference(
           session: session,
           preprocessed: preprocessed,
+          modelType: modelType,
         );
         restoredBytes = tiledResult.imageBytes;
         outWidth = tiledResult.width;
@@ -82,6 +80,7 @@ class OnnxInferenceService {
         final directResult = await _runDirectInference(
           session: session,
           preprocessed: preprocessed,
+          modelType: modelType,
         );
         restoredBytes = directResult.imageBytes;
         outWidth = directResult.width;
@@ -101,7 +100,8 @@ class OnnxInferenceService {
         processingTimeMs: stopwatch.elapsedMilliseconds,
         strategy: strategy,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('DEBUG ONNX EXCEPTION: $e\n$stackTrace');
       stopwatch.stop();
       if (e is ModelLoadException) rethrow;
       if (e is ImageProcessingException) rethrow;
@@ -110,23 +110,32 @@ class OnnxInferenceService {
   }
 
   Future<PostprocessResult> _runDirectInference({
-    required OnnxRuntimeSession session,
+    required OrtSession session,
     required PreprocessResult preprocessed,
+    required ModelType modelType,
   }) async {
-    final inputName = (await session.getInputNames()).first;
+    final inputName = session.inputNames.first;
 
-    final inputTensor = OnnxRuntimeTensor.fromList(
+    final shape = modelType == ModelType.deblurring
+        ? [1, 3, preprocessed.height, preprocessed.width]
+        : [1, preprocessed.height, preprocessed.width, 3];
+
+    final inputTensor = await OrtValue.fromList(
       preprocessed.tensorData,
-      [1, preprocessed.height, preprocessed.width, 3],
+      shape,
     );
 
     final outputs = await session.run({inputName: inputTensor});
-    final outputData = outputs.values.first.value as List<double>;
+    final outputList = await outputs.values.first.asFlattenedList();
+    final outputData = outputList.cast<double>();
 
     final result = _postprocessor.postprocess(
       outputData: outputData,
       width: preprocessed.width,
       height: preprocessed.height,
+      modelType: modelType,
+      targetWidth: modelType == ModelType.deblurring ? preprocessed.originalWidth : null,
+      targetHeight: modelType == ModelType.deblurring ? preprocessed.originalHeight : null,
     );
 
     inputTensor.dispose();
@@ -138,47 +147,41 @@ class OnnxInferenceService {
   }
 
   Future<PostprocessResult> _runTiledInference({
-    required OnnxRuntimeSession session,
+    required OrtSession session,
     required PreprocessResult preprocessed,
+    required ModelType modelType,
   }) async {
-    final inputName = (await session.getInputNames()).first;
+    final inputName = session.inputNames.first;
     final tileSize = ModelConfig.tileSize;
     final overlap = ModelConfig.tileOverlap;
 
-    // Reconstruct image from preprocessed tensor for tiling
-    final image = img.Image(
-      width: preprocessed.width,
-      height: preprocessed.height,
-    );
-    int idx = 0;
-    for (int y = 0; y < preprocessed.height; y++) {
-      for (int x = 0; x < preprocessed.width; x++) {
-        final r = (preprocessed.tensorData[idx++] * 255).round();
-        final g = (preprocessed.tensorData[idx++] * 255).round();
-        final b = (preprocessed.tensorData[idx++] * 255).round();
-        image.setPixelRgb(x, y, r, g, b);
-      }
-    }
+    // Use preprocessed image directly instead of reconstructing from tensor
+    final image = preprocessed.image;
 
     // Split into tiles
     final tiles = _tileProcessor.splitToTiles(
       image: image,
       tileSize: tileSize,
       overlap: overlap,
+      modelType: modelType,
     );
 
     // Run inference on each tile sequentially
     final tileOutputs = <Float32List>[];
 
     for (final tile in tiles) {
-      final inputTensor = OnnxRuntimeTensor.fromList(
+      final shape = modelType == ModelType.deblurring
+          ? [1, 3, tileSize, tileSize]
+          : [1, tileSize, tileSize, 3];
+
+      final inputTensor = await OrtValue.fromList(
         tile.tensorData,
-        [1, tileSize, tileSize, 3],
+        shape,
       );
 
       final outputs = await session.run({inputName: inputTensor});
-      final outputData = outputs.values.first.value as List<double>;
-      tileOutputs.add(Float32List.fromList(outputData.map((e) => e.toDouble()).toList()));
+      final outputData = await outputs.values.first.asFlattenedList();
+      tileOutputs.add(Float32List.fromList(outputData.cast<double>()));
 
       inputTensor.dispose();
       for (final t in outputs.values) {
@@ -194,15 +197,26 @@ class OnnxInferenceService {
       fullHeight: preprocessed.height,
       tileSize: tileSize,
       overlap: overlap,
+      modelType: modelType,
     );
 
+    img.Image finalStitched = stitched;
+    if (modelType == ModelType.deblurring && (preprocessed.originalWidth != preprocessed.width || preprocessed.originalHeight != preprocessed.height)) {
+      finalStitched = img.copyResize(
+        stitched,
+        width: preprocessed.originalWidth,
+        height: preprocessed.originalHeight,
+        interpolation: img.Interpolation.linear,
+      );
+    }
+
     // Encode stitched image to JPEG
-    final encoded = img.encodeJpg(stitched, quality: 95);
+    final encoded = img.encodeJpg(finalStitched, quality: 95);
 
     return PostprocessResult(
       imageBytes: Uint8List.fromList(encoded),
-      width: stitched.width,
-      height: stitched.height,
+      width: finalStitched.width,
+      height: finalStitched.height,
     );
   }
 

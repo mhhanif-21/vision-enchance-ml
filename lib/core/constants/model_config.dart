@@ -16,9 +16,9 @@ enum ModelType {
   String get assetPath {
     switch (this) {
       case ModelType.lowLight:
-        return 'models/low_light_enhancement_fp16.onnx';
+        return 'models/low_light_enhancement.onnx';
       case ModelType.deblurring:
-        return 'models/deblurring_nafnet_2025may_fp16.onnx';
+        return 'models/deblurring_nafnet_2025may.onnx';
     }
   }
 }
@@ -32,7 +32,7 @@ class ModelConfig {
 
   static const Map<ModelType, Size> maxResolution = {
     ModelType.lowLight: Size(1920, 1080),
-    ModelType.deblurring: Size(1280, 720),
+    ModelType.deblurring: Size(512, 512), // Sweet spot: Kualitas cukup baik, selesai dalam ~15-20 detik tanpa Tiling
   };
 
   static const Map<ModelType, int> minRamRequiredMB = {
