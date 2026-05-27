@@ -18,7 +18,7 @@ enum ModelType {
       case ModelType.lowLight:
         return 'models/low_light_enhancement.onnx';
       case ModelType.deblurring:
-        return 'models/deblurring_nafnet_2025may.onnx';
+        return 'models/nafnet_gopro_width32_fp16.onnx';
     }
   }
 }
