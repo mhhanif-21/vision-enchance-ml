@@ -1,73 +1,58 @@
+/// File ini mengatur tipografi aplikasi (Font size, weight, font family).
+/// Berdasarkan desain, menggunakan Manrope untuk judul dan Inter untuk body text.
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTypography {
-  AppTypography._();
+  // Gaya teks untuk judul besar (Manrope).
+  static TextStyle get headlineXl => GoogleFonts.manrope(
+        fontSize: 40,
+        fontWeight: FontWeight.w300,
+        letterSpacing: -0.02,
+        height: 1.2,
+      );
 
-  static TextTheme get textTheme => TextTheme(
-    displayLarge: _headlineXl,
-    displayMedium: _headlineLg,
-    displaySmall: _headlineMd,
-    headlineLarge: _headlineLg,
-    headlineMedium: _headlineMd,
-    titleLarge: _headlineMd,
-    titleMedium: _bodyLg,
-    bodyLarge: _bodyLg,
-    bodyMedium: _bodyMd,
-    bodySmall: _bodySm,
-    labelLarge: _labelMd,
-    labelMedium: _labelMd,
-    labelSmall: _labelSm,
-  );
+  // Gaya teks untuk sub-judul (Manrope).
+  static TextStyle get headlineLg => GoogleFonts.manrope(
+        fontSize: 32,
+        fontWeight: FontWeight.w400,
+        letterSpacing: -0.01,
+        height: 1.25,
+      );
 
-  static TextStyle get _headlineXl => GoogleFonts.manrope(
-    fontSize: 40,
-    fontWeight: FontWeight.w300,
-    height: 48 / 40,
-    letterSpacing: -0.8,
-  );
+  // Gaya teks untuk judul kartu/komponen (Manrope).
+  static TextStyle get headlineMd => GoogleFonts.manrope(
+        fontSize: 24,
+        fontWeight: FontWeight.w500,
+        height: 1.33,
+      );
 
-  static TextStyle get _headlineLg => GoogleFonts.manrope(
-    fontSize: 32,
-    fontWeight: FontWeight.w400,
-    height: 40 / 32,
-    letterSpacing: -0.32,
-  );
+  // Gaya teks utama untuk paragraf besar (Inter).
+  static TextStyle get bodyLg => GoogleFonts.inter(
+        fontSize: 18,
+        fontWeight: FontWeight.w400,
+        height: 1.55,
+      );
 
-  static TextStyle get _headlineMd => GoogleFonts.manrope(
-    fontSize: 24,
-    fontWeight: FontWeight.w500,
-    height: 32 / 24,
-  );
+  // Gaya teks reguler untuk paragraf standar (Inter).
+  static TextStyle get bodyMd => GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+      );
 
-  static TextStyle get _bodyLg => GoogleFonts.inter(
-    fontSize: 18,
-    fontWeight: FontWeight.w400,
-    height: 28 / 18,
-  );
+  // Gaya teks kecil untuk keterangan (Inter).
+  static TextStyle get bodySm => GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.42,
+      );
 
-  static TextStyle get _bodyMd => GoogleFonts.inter(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    height: 24 / 16,
-  );
-
-  static TextStyle get _bodySm => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    height: 20 / 14,
-  );
-
-  static TextStyle get _labelMd => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    height: 16 / 14,
-    letterSpacing: 0.7,
-  );
-
-  static TextStyle get _labelSm => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w500,
-    height: 14 / 12,
-  );
+  // Gaya teks untuk label pada tombol atau form (Inter).
+  static TextStyle get labelMd => GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.05,
+        height: 1.14,
+      );
 }

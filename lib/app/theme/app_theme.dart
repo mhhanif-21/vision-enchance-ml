@@ -1,90 +1,56 @@
+/// File ini menggabungkan konfigurasi warna dan tipografi menjadi ThemeData.
+/// ThemeData ini kemudian dipasangkan ke MaterialApp di main.dart.
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 
 class AppTheme {
-  AppTheme._();
-
+  // Mendapatkan konfigurasi tema terang (Light Theme) secara keseluruhan.
   static ThemeData get lightTheme {
-    final colorScheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: AppColors.secondary,
-      onPrimary: AppColors.onSecondary,
-      primaryContainer: AppColors.secondaryContainer,
-      onPrimaryContainer: AppColors.onSecondaryContainer,
-      secondary: AppColors.primary,
-      onSecondary: AppColors.onPrimary,
-      secondaryContainer: AppColors.surfaceContainerHigh,
-      onSecondaryContainer: AppColors.onSurface,
-      tertiary: AppColors.tertiary,
-      onTertiary: AppColors.onTertiary,
-      tertiaryContainer: AppColors.tertiaryContainer,
-      onTertiaryContainer: AppColors.onTertiaryContainer,
-      error: AppColors.error,
-      onError: AppColors.onError,
-      errorContainer: AppColors.errorContainer,
-      surface: AppColors.surface,
-      onSurface: AppColors.onSurface,
-      onSurfaceVariant: AppColors.onSurfaceVariant,
-      outline: AppColors.outline,
-      outlineVariant: AppColors.outlineVariant,
-      inverseSurface: AppColors.inverseSurface,
-      onInverseSurface: AppColors.inverseOnSurface,
-      inversePrimary: AppColors.inversePrimary,
-    );
-
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
-      textTheme: AppTypography.textTheme,
-      scaffoldBackgroundColor: AppColors.surface,
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.onSurface,
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        centerTitle: false,
+      scaffoldBackgroundColor: AppColors.background,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.secondary,
+        primary: AppColors.secondary,
+        background: AppColors.background,
+        error: AppColors.error,
+        surface: AppColors.surface,
+        onBackground: AppColors.onBackground,
       ),
-      cardTheme: CardThemeData(
-        color: AppColors.surfaceContainerLowest,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        shadowColor: AppColors.accent.withAlpha(13),
+      // Menerapkan font Inter sebagai default text theme
+      textTheme: TextTheme(
+        displayLarge: AppTypography.headlineXl,
+        displayMedium: AppTypography.headlineLg,
+        displaySmall: AppTypography.headlineMd,
+        bodyLarge: AppTypography.bodyLg,
+        bodyMedium: AppTypography.bodyMd,
+        bodySmall: AppTypography.bodySm,
+        labelLarge: AppTypography.labelMd,
+      ).apply(
+        bodyColor: AppColors.onBackground,
+        displayColor: AppColors.onBackground,
       ),
+      // Konfigurasi style khusus untuk tombol (ElevatedButton)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.secondary,
-          foregroundColor: AppColors.onSecondary,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.0), // Rounded 0.5rem
           ),
+          textStyle: AppTypography.labelMd,
+          elevation: 2,
         ),
       ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.secondary,
-          side: BorderSide(color: AppColors.secondary.withAlpha(128)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.divider,
-        thickness: 1,
-        space: 1,
-      ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: AppColors.onSurfaceVariant,
-        type: BottomNavigationBarType.fixed,
+      // Konfigurasi style khusus untuk kartu penampung (Card)
+      cardTheme: CardTheme(
+        color: AppColors.primary,
         elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0), // Rounded 1rem untuk cards
+        ),
+        margin: EdgeInsets.zero,
       ),
     );
   }
