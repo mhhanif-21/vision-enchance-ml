@@ -26,6 +26,16 @@ class DeleteHistory extends HistoryEvent {
   List<Object> get props => [id];
 }
 
+// Event untuk menyimpan riwayat baru.
+class SaveHistory extends HistoryEvent {
+  final RestorationModel restoration;
+  
+  const SaveHistory(this.restoration);
+
+  @override
+  List<Object> get props => [restoration];
+}
+
 // --- States ---
 
 abstract class HistoryState extends Equatable {
@@ -69,6 +79,9 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     
     // Mendaftarkan handler untuk event penghapusan data.
     on<DeleteHistory>(_onDeleteHistory);
+    
+    // Mendaftarkan handler untuk menyimpan data.
+    on<SaveHistory>(_onSaveHistory);
   }
 
   // Fungsi untuk menangani pemuatan data riwayat dari repository lokal.
@@ -79,6 +92,16 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       emit(HistoryLoaded(history));
     } catch (e) {
       emit(HistoryError('Gagal memuat riwayat: $e'));
+    }
+  }
+
+  // Fungsi untuk menyimpan riwayat baru.
+  Future<void> _onSaveHistory(SaveHistory event, Emitter<HistoryState> emit) async {
+    try {
+      await repository.saveRestoration(event.restoration);
+      add(LoadHistory()); // Muat ulang setelah disimpan
+    } catch (e) {
+      emit(HistoryError('Gagal menyimpan riwayat: $e'));
     }
   }
 

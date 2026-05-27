@@ -1,151 +1,157 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
+/// Halaman Result. Menampilkan perbandingan gambar sebelum dan sesudah direstorasi.
+/// Memungkinkan pengguna untuk melihat secara detail dan menyimpannya.
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../../services/storage/file_storage_service.dart';
-import '../../../../core/di/injection.dart';
-import '../bloc/restore_bloc.dart';
-import '../bloc/restore_event.dart';
-import '../bloc/restore_state.dart';
-import '../widgets/before_after_slider.dart';
+import '../../../../services/ml/onnx_inference_service.dart';
+import '../../../history/presentation/bloc/history_bloc.dart';
+import '../../../history/data/models/restoration_model.dart';
 
-class ResultPage extends StatelessWidget {
-  const ResultPage({super.key});
+class ResultPage extends StatefulWidget {
+  final RestorationResult result;
+
+  const ResultPage({super.key, required this.result});
+
+  @override
+  State<ResultPage> createState() => _ResultPageState();
+}
+
+class _ResultPageState extends State<ResultPage> {
+  bool _showOriginal = false;
+  bool _isSaving = false;
+
+  // Fungsi untuk menyimpan gambar hasil restorasi ke direktori lokal (memori internal).
+  // Kemudian mencatat path-nya ke dalam database Hive melalui HistoryBloc.
+  Future<void> _saveResult() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
+    try {
+      // Mendapatkan direktori internal aplikasi
+      final appDir = await getApplicationDocumentsDirectory();
+      final uuid = const Uuid().v4();
+      
+      // Menyimpan file gambar asli
+      final originalFile = File('${appDir.path}/ori_$uuid.jpg');
+      await originalFile.writeAsBytes(widget.result.originalBytes);
+      
+      // Menyimpan file gambar hasil restorasi
+      final restoredFile = File('${appDir.path}/res_$uuid.jpg');
+      await restoredFile.writeAsBytes(widget.result.restoredBytes);
+
+      // Membuat model data untuk disimpan ke Hive
+      final model = RestorationModel(
+        id: uuid,
+        originalImagePath: originalFile.path,
+        restoredImagePath: restoredFile.path,
+        modelType: widget.result.strategy.name,
+        createdAt: DateTime.now(),
+      );
+
+      // Menyimpan ke database melalui BLoC
+      if (mounted) {
+        context.read<HistoryBloc>().add(SaveHistory(model));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gambar berhasil disimpan ke History!')),
+        );
+        // Kembali ke halaman utama setelah sukses
+        context.go('/');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan gambar: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RestoreBloc, RestoreState>(
-      builder: (context, state) {
-        if (state is! RestoreSuccess) {
-          return const Scaffold(body: Center(child: Text('No result')));
-        }
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Hasil Restorasi'),
-            leading: IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () {
-                context.read<RestoreBloc>().add(const RestoreReset());
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-            ),
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: BeforeAfterSlider(
-                      beforeImage: state.originalBytes,
-                      afterImage: state.restoredBytes,
+    // Menentukan gambar mana yang sedang ditampilkan (Asli vs Restorasi)
+    final Uint8List displayBytes = _showOriginal
+        ? widget.result.originalBytes
+        : widget.result.restoredBytes;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Hasil Restorasi'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => context.go('/'),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                // Jika user menahan gambar, tampilkan gambar aslinya (Before)
+                onTapDown: (_) => setState(() => _showOriginal = true),
+                onTapUp: (_) => setState(() => _showOriginal = false),
+                onTapCancel: () => setState(() => _showOriginal = false),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.secondary.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.0),
+                    child: Image.memory(
+                      displayBytes,
+                      fit: BoxFit.contain,
+                      gaplessPlayback: true, // Mencegah flicker saat toggle
                     ),
                   ),
                 ),
-                _buildMetadata(context, state),
-                _buildActions(context, state),
-              ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMetadata(BuildContext context, RestoreSuccess state) {
-    final seconds = (state.processingTimeMs / 1000).toStringAsFixed(1);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildMetaItem(context, Icons.auto_fix_high_rounded, state.modelType.displayName),
-            _buildMetaItem(context, Icons.timer_outlined, '${seconds}s'),
-            _buildMetaItem(context, Icons.photo_size_select_actual_outlined, '${state.inputWidth}×${state.inputHeight}'),
+            const SizedBox(height: 16),
+            Text(
+              _showOriginal ? 'SEBELUM (Tahan untuk melihat)' : 'SESUDAH',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: AppColors.secondary,
+                    letterSpacing: 2.0,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Waktu Proses: ${widget.result.processingTimeMs} ms',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: _isSaving ? null : _saveResult,
+              icon: _isSaving 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.save_alt),
+              label: Text(_isSaving ? 'Menyimpan...' : 'Simpan & Selesai'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 56),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildMetaItem(BuildContext context, IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: AppColors.onSurfaceVariant),
-        const SizedBox(width: 4),
-        Text(text, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant)),
-      ],
-    );
-  }
-
-  Widget _buildActions(BuildContext context, RestoreSuccess state) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _saveToGallery(context, state),
-              icon: const Icon(Icons.save_alt_rounded, size: 18),
-              label: Text('Simpan', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          OutlinedButton(
-            onPressed: () => _shareResult(context, state),
-            child: const Icon(Icons.share_rounded, size: 20),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _saveToGallery(BuildContext context, RestoreSuccess state) async {
-    try {
-      final storage = sl<FileStorageService>();
-      final id = DateTime.now().millisecondsSinceEpoch.toString();
-      await storage.saveRestored(id, state.restoredBytes);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Foto berhasil disimpan'),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: AppColors.error),
-        );
-      }
-    }
-  }
-
-  Future<void> _shareResult(BuildContext context, RestoreSuccess state) async {
-    try {
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/lumina_restored_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      await file.writeAsBytes(state.restoredBytes);
-      await Share.shareXFiles([XFile(file.path)], text: 'Restored with Lumina Restore');
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membagikan: $e'), backgroundColor: AppColors.error),
-        );
-      }
-    }
   }
 }

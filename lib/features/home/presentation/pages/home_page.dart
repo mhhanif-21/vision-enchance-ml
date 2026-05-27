@@ -1,51 +1,57 @@
+/// Halaman beranda (Dashboard) dari Lumina Restore.
+/// Menampilkan pilihan tipe restorasi dan tombol untuk melihat riwayat (History).
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/model_config.dart';
-import '../../../../core/di/injection.dart';
-import '../../../../services/ml/onnx_inference_service.dart';
-import '../../../restore/presentation/bloc/restore_bloc.dart';
-import '../../../restore/presentation/pages/upload_page.dart';
-import '../widgets/restoration_type_card.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  void _navigateToRestore(BuildContext context, ModelType modelType) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => RestoreBloc(inferenceService: sl<OnnxInferenceService>()),
-          child: UploadPage(modelType: modelType),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 40),
-                    _buildSectionTitle(context, 'Pilih Jenis Restorasi'),
-                    const SizedBox(height: 16),
-                    _buildRestorationCards(context),
-                    const SizedBox(height: 40),
-                    _buildInfoSection(context),
-                  ],
-                ),
-              ),
+      appBar: AppBar(
+        title: Text(
+          'Lumina Restore',
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          // Tombol navigasi ke History
+          IconButton(
+            icon: const Icon(Icons.history, color: AppColors.secondary),
+            onPressed: () => context.push('/history'),
+          )
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0), // Spasi yang luas sesuai desain Stitch
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Pilih Jenis\nRestorasi',
+              style: Theme.of(context).textTheme.displayLarge,
+            ),
+            const SizedBox(height: 32),
+            // Kartu opsi Low-Light
+            _buildTypeCard(
+              context,
+              title: 'Peningkatan Cahaya',
+              subtitle: 'Terangkan foto yang gelap atau kurang pencahayaan.',
+              icon: Icons.brightness_6,
+              modelType: ModelType.lowLight,
+            ),
+            const SizedBox(height: 16),
+            // Kartu opsi Deblurring
+            _buildTypeCard(
+              context,
+              title: 'Penghilangan Blur',
+              subtitle: 'Pertajam foto yang buram atau kabur dengan cepat.',
+              icon: Icons.blur_off,
+              modelType: ModelType.deblurring,
             ),
           ],
         ),
@@ -53,69 +59,58 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(color: AppColors.secondary, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.auto_fix_high_rounded, color: AppColors.onSecondary, size: 22),
-            ),
-            const Spacer(),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.settings_outlined, color: AppColors.onSurfaceVariant)),
-          ],
-        ),
-        const SizedBox(height: 24),
-        Text(AppConstants.appName, style: GoogleFonts.manrope(fontSize: 32, fontWeight: FontWeight.w300, color: AppColors.onSurface, letterSpacing: -0.5)),
-        const SizedBox(height: 8),
-        Text('Kembalikan keindahan foto Anda\ndengan kecerdasan buatan.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant, height: 1.5)),
-      ],
-    );
-  }
-
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Text(title, style: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.onSurfaceVariant, letterSpacing: 0.8));
-  }
-
-  Widget _buildRestorationCards(BuildContext context) {
-    return Column(
-      children: [
-        RestorationTypeCard(
-          title: 'Peningkatan Cahaya',
-          subtitle: 'Cerahkan foto gelap atau low-light',
-          icon: Icons.wb_sunny_rounded,
-          iconColor: const Color(0xFFE6A817),
-          onTap: () => _navigateToRestore(context, ModelType.lowLight),
-        ),
-        const SizedBox(height: 12),
-        RestorationTypeCard(
-          title: 'Penghilangan Blur',
-          subtitle: 'Pertajam foto yang buram atau goyang',
-          icon: Icons.center_focus_strong_rounded,
-          iconColor: AppColors.secondary,
-          onTap: () => _navigateToRestore(context, ModelType.deblurring),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.secondaryContainer.withAlpha(77), borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          Icon(Icons.shield_outlined, color: AppColors.secondary, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text('Semua proses berjalan di perangkat Anda. Foto tidak dikirim ke server manapun.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSecondaryContainer, height: 1.4)),
+  // Membuat komponen kartu opsi restorasi yang dapat ditekan.
+  Widget _buildTypeCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required ModelType modelType,
+  }) {
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.0),
+        onTap: () {
+          // Navigasi ke layar upload dengan melempar parameter tipe model
+          context.push('/upload', extra: modelType);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            children: [
+              // Lingkaran aksen untuk icon
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: AppColors.secondary, size: 32),
+              ),
+              const SizedBox(width: 16),
+              // Teks penjelasan
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 18),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, color: AppColors.outline, size: 16),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
