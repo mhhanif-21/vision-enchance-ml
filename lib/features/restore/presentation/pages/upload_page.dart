@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/model_config.dart';
+import '../../../../core/constants/app_constants.dart';
+import 'package:image/image.dart' as img;
 
 class UploadPage extends StatefulWidget {
   final ModelType modelType;
@@ -24,15 +26,53 @@ class _UploadPageState extends State<UploadPage> {
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
+        final file = File(image.path);
+        
+        // --- Mulai Validasi ---
+        // 1. Validasi Ekstensi
+        final ext = image.name.split('.').last.toLowerCase();
+        if (!AppConstants.supportedFormats.contains(ext)) {
+          _showError('Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP.');
+          return;
+        }
+
+        // 2. Validasi Ukuran File (Maksimal 20MB)
+        final sizeBytes = await file.length();
+        if (sizeBytes > AppConstants.maxFileSizeBytes) {
+          _showError('Ukuran gambar terlalu besar. Maksimal 20 MB.');
+          return;
+        }
+
+        // 3. Validasi Resolusi Gambar (Maksimal 4096px)
+        final bytes = await file.readAsBytes();
+        final decodedImage = img.decodeImage(bytes);
+        if (decodedImage == null) {
+          _showError('Gagal membaca gambar. File mungkin rusak.');
+          return;
+        }
+        if (decodedImage.width > AppConstants.maxImageDimension || decodedImage.height > AppConstants.maxImageDimension) {
+          _showError('Resolusi gambar melebihi batas maksimal 4096px.');
+          return;
+        }
+        // --- Selesai Validasi ---
+
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedImage = file;
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memilih gambar: $e')),
-      );
+      _showError('Gagal memilih gambar: $e');
     }
+  }
+
+  // Fungsi utilitas untuk menampilkan pesan error dengan SnackBar
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+      ),
+    );
   }
 
   // Melanjutkan proses dengan melempar path gambar dan tipe model ke ProcessingPage.
