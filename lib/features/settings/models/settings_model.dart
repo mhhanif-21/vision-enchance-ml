@@ -1,6 +1,6 @@
 // File ini merupakan struktur data Hive untuk pengaturan aplikasi.
 import 'package:hive/hive.dart';
-import '../../models/settings_entity.dart';
+import '../models/settings_entity.dart';
 
 part 'settings_model.g.dart';
 

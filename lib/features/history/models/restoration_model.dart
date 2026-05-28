@@ -1,7 +1,7 @@
 /// Model data untuk riwayat restorasi foto yang disimpan ke dalam Hive.
 /// Model ini menggunakan HiveObject agar mudah diperbarui atau dihapus.
 import 'package:hive/hive.dart';
-import '../../models/restoration_entity.dart';
+import '../models/restoration_entity.dart';
 
 part 'restoration_model.g.dart';
 

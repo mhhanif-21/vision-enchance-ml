@@ -1,5 +1,5 @@
 // File ini mendefinisikan antarmuka (interface) untuk pengaturan aplikasi.
-import '../entities/settings_entity.dart';
+import '../models/settings_entity.dart';
 
 abstract class ISettingsRepository {
   // Mengambil konfigurasi aplikasi saat ini

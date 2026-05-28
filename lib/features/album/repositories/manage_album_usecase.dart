@@ -1,7 +1,7 @@
 // File ini mendefinisikan UseCase untuk mengelola Album.
 // BLoC akan memanggil fungsi-fungsi ini alih-alih memanggil repository langsung.
 
-import '../entities/album_entity.dart';
+import '../models/album_entity.dart';
 import '../repositories/i_album_repository.dart';
 
 class ManageAlbumUseCase {

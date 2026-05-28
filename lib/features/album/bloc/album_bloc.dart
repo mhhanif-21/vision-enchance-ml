@@ -2,8 +2,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
-import '../../models/album_entity.dart';
-import '../../repositories/manage_album_usecase.dart';
+import '../models/album_entity.dart';
+import '../repositories/manage_album_usecase.dart';
 
 // --- Events ---
 

@@ -3,8 +3,8 @@
 import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../models/restoration_result.dart';
-import '../../repositories/restore_image_usecase.dart';
+import '../models/restoration_result.dart';
+import '../repositories/restore_image_usecase.dart';
 import '../../../../core/constants/model_config.dart';
 
 // --- Events ---

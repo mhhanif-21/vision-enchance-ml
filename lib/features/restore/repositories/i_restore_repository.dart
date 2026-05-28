@@ -2,7 +2,7 @@
 // Implementasinya akan berada di ML Service layer.
 import 'dart:typed_data';
 import '../../../../core/constants/model_config.dart';
-import '../entities/restoration_result.dart';
+import '../models/restoration_result.dart';
 
 abstract class IRestoreRepository {
   // Menjalankan proses restorasi AI dan mengembalikan hasil lengkap beserta metadata

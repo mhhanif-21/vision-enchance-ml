@@ -1,8 +1,8 @@
 // File ini mengatur state konfigurasi (tema) dan cache aplikasi.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../models/settings_entity.dart';
-import '../../repositories/manage_settings_usecase.dart';
+import '../models/settings_entity.dart';
+import '../repositories/manage_settings_usecase.dart';
 
 // --- Events ---
 

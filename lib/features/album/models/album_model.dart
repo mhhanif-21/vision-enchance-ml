@@ -1,6 +1,6 @@
 // File ini berisi model data Album untuk disimpan di Hive.
 import 'package:hive/hive.dart';
-import '../../models/album_entity.dart';
+import '../models/album_entity.dart';
 
 part 'album_model.g.dart';
 

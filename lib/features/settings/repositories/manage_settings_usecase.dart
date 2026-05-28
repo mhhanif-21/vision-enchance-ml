@@ -1,6 +1,6 @@
 // File ini mendefinisikan UseCase untuk modul Pengaturan (Settings).
 // Berperan sebagai perantara BLoC dengan Repository layer.
-import '../entities/settings_entity.dart';
+import '../models/settings_entity.dart';
 import '../repositories/i_settings_repository.dart';
 
 class ManageSettingsUseCase {

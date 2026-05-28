@@ -66,11 +66,19 @@ class _ProcessingPageState extends State<ProcessingPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(color: AppColors.secondary),
-                  const SizedBox(height: 32),
+                  const SizedBox(
+                    width: 200,
+                    height: 4,
+                    child: LinearProgressIndicator(
+                      backgroundColor: AppColors.surfaceContainerHigh,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+                      borderRadius: BorderRadius.all(Radius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                   Text(
                     'Sedang Merestorasi Foto...',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(context).textTheme.headlineMd,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),

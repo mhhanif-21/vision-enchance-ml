@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/custom_card.dart';
 import '../bloc/settings_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -13,9 +14,10 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pengaturan'),
+        title: Text('Pengaturan', style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w400)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -37,7 +39,7 @@ class SettingsPage extends StatelessWidget {
           final isDark = state.settings.isDarkMode;
 
           return ListView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
             children: [
               // Bagian Tampilan
               Text(
@@ -47,7 +49,8 @@ class SettingsPage extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: 16),
-              Card(
+              CustomCard(
+                padding: EdgeInsets.zero,
                 child: SwitchListTile(
                   title: const Text('Mode Gelap'),
                   subtitle: const Text('Gunakan tema gelap untuk aplikasi'),
@@ -68,7 +71,8 @@ class SettingsPage extends StatelessWidget {
                     ),
               ),
               const SizedBox(height: 16),
-              Card(
+              CustomCard(
+                padding: EdgeInsets.zero,
                 child: ListTile(
                   leading: const Icon(Icons.delete_sweep, color: AppColors.error),
                   title: const Text('Hapus Data Cache'),

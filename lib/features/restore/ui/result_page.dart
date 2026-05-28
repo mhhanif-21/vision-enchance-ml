@@ -9,10 +9,11 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../services/ml/onnx_inference_service.dart';
 import '../../../../services/storage/file_storage_service.dart';
 import '../../../../core/di/injection.dart';
-import '../../../history/bloc/history_bloc.dart';
-import '../../../history/models/restoration_entity.dart';
-import '../../../album/bloc/album_bloc.dart';
-import '../../models/restoration_result.dart';
+import '../../history/bloc/history_bloc.dart';
+import '../../history/models/restoration_entity.dart';
+import '../../album/bloc/album_bloc.dart';
+import '../models/restoration_result.dart';
+import '../../../../core/widgets/before_after_slider.dart';
 
 class ResultPage extends StatefulWidget {
   final RestorationResult result;
@@ -24,7 +25,6 @@ class ResultPage extends StatefulWidget {
 }
 
 class _ResultPageState extends State<ResultPage> {
-  bool _showOriginal = false;
   bool _isSaving = false;
 
   Future<void> _saveResult({String? albumId}) async {
@@ -189,57 +189,49 @@ class _ResultPageState extends State<ResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Menentukan gambar mana yang sedang ditampilkan (Asli vs Restorasi)
-    final Uint8List displayBytes = _showOriginal
-        ? widget.result.originalBytes
-        : widget.result.restoredBytes;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hasil Restorasi'),
+        title: Text('Hasil Restorasi', style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w400)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.go('/'),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
         child: Column(
           children: [
             Expanded(
-              child: GestureDetector(
-                // Jika user menahan gambar, tampilkan gambar aslinya (Before)
-                onTapDown: (_) => setState(() => _showOriginal = true),
-                onTapUp: (_) => setState(() => _showOriginal = false),
-                onTapCancel: () => setState(() => _showOriginal = false),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.0),
-                    child: Image.memory(
-                      displayBytes,
-                      fit: BoxFit.contain,
-                      gaplessPlayback: true, // Mencegah flicker saat toggle
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.secondary.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
+                  ],
+                ),
+                child: BeforeAfterSlider(
+                  beforeImage: Image.memory(
+                    widget.result.originalBytes,
+                    fit: BoxFit.contain,
+                  ),
+                  afterImage: Image.memory(
+                    widget.result.restoredBytes,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              _showOriginal ? 'SEBELUM (Tahan untuk melihat)' : 'SESUDAH',
+              'Geser untuk membandingkan',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: AppColors.secondary,
                     letterSpacing: 2.0,
@@ -258,9 +250,11 @@ class _ResultPageState extends State<ResultPage> {
               icon: _isSaving 
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.save_alt),
-              label: Text(_isSaving ? 'Menyimpan...' : 'Simpan & Selesai'),
+              label: Text(_isSaving ? 'Menyimpan...' : 'Simpan ke Galeri / Album'),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 56),
+                backgroundColor: AppColors.secondary,
+                foregroundColor: AppColors.onSecondary,
               ),
             ),
           ],

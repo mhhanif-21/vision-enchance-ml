@@ -1,7 +1,7 @@
 // File ini mendefinisikan kontrak repositori untuk modul Album.
 // Implementasinya akan berada di layer data (Hive).
 
-import '../entities/album_entity.dart';
+import '../models/album_entity.dart';
 
 abstract class IAlbumRepository {
   // Mengambil semua album pengguna

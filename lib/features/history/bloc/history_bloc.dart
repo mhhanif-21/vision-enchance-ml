@@ -2,8 +2,8 @@
 // BLoC ini mengambil data dari ManageHistoryUseCase dan menyediakannya ke UI.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../models/restoration_entity.dart';
-import '../../repositories/manage_history_usecase.dart';
+import '../models/restoration_entity.dart';
+import '../repositories/manage_history_usecase.dart';
 
 // --- Events ---
 

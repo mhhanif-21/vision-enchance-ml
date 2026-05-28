@@ -2,7 +2,7 @@
 // Berisi logika bisnis spesifik terkait fitur riwayat.
 // UseCase ini bertindak sebagai perantara antara Presentation Layer (BLoC) dan Data Layer.
 
-import '../entities/restoration_entity.dart';
+import '../models/restoration_entity.dart';
 import '../repositories/i_history_repository.dart';
 
 class ManageHistoryUseCase {

@@ -2,7 +2,7 @@
 // Berada di layer domain, interface ini menjadi kontrak yang harus dipenuhi oleh layer data.
 // Membantu memisahkan logika bisnis dari detail implementasi penyimpanan (seperti Hive).
 
-import '../entities/restoration_entity.dart';
+import '../models/restoration_entity.dart';
 
 abstract class IHistoryRepository {
   // Mengambil semua riwayat restorasi yang tersimpan

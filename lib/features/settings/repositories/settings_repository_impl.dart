@@ -1,10 +1,10 @@
 // File ini mengimplementasikan logika penyimpanan pengaturan di Hive.
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../repositories/i_settings_repository.dart';
-import '../../models/settings_entity.dart';
+import '../repositories/i_settings_repository.dart';
+import '../models/settings_entity.dart';
 import '../models/settings_model.dart';
-import '../../../history/models/restoration_model.dart';
-import '../../../album/models/album_model.dart';
+import '../../history/models/restoration_model.dart';
+import '../../album/models/album_model.dart';
 
 class SettingsRepositoryImpl implements ISettingsRepository {
   // Nama box Hive yang digunakan

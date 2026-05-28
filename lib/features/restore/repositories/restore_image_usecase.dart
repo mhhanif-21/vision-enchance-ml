@@ -3,7 +3,7 @@
 import 'dart:typed_data';
 import '../../../../core/constants/model_config.dart';
 import '../repositories/i_restore_repository.dart';
-import '../entities/restoration_result.dart';
+import '../models/restoration_result.dart';
 
 class RestoreImageUseCase {
   final IRestoreRepository repository;

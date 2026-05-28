@@ -94,13 +94,13 @@ class _UploadPageState extends State<UploadPage> {
         elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
         child: Column(
           children: [
             Expanded(
               child: _selectedImage != null
                   ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
+                      borderRadius: BorderRadius.circular(24.0),
                       child: Image.file(_selectedImage!, fit: BoxFit.cover),
                     )
                   : _buildPlaceholder(),
@@ -165,14 +165,13 @@ class _UploadPageState extends State<UploadPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: AppColors.outline, width: 1, style: BorderStyle.solid),
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24.0),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.add_photo_alternate, size: 80, color: AppColors.secondary.withOpacity(0.5)),
+          Icon(Icons.add_photo_alternate, size: 80, color: AppColors.secondary.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'Belum ada foto terpilih',

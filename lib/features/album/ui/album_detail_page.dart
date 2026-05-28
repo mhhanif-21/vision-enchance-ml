@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../models/album_entity.dart';
+import '../models/album_entity.dart';
 import '../bloc/album_bloc.dart';
-import '../../../history/bloc/history_bloc.dart';
+import '../../history/bloc/history_bloc.dart';
 
 class AlbumDetailPage extends StatelessWidget {
   final AlbumEntity album;

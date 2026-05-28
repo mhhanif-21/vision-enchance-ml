@@ -2,8 +2,8 @@
 /// Berfungsi sebagai jembatan antara logika BLoC dan penyimpanan lokal.
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/restoration_model.dart';
-import '../../repositories/i_history_repository.dart';
-import '../../models/restoration_entity.dart';
+import '../repositories/i_history_repository.dart';
+import '../models/restoration_entity.dart';
 
 class HistoryRepositoryImpl implements IHistoryRepository {
   // Nama box Hive yang digunakan untuk menyimpan riwayat.

@@ -1,7 +1,7 @@
 // File ini berisi implementasi IAlbumRepository menggunakan Hive.
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../repositories/i_album_repository.dart';
-import '../../models/album_entity.dart';
+import '../repositories/i_album_repository.dart';
+import '../models/album_entity.dart';
 import '../models/album_model.dart';
 
 class AlbumRepositoryImpl implements IAlbumRepository {

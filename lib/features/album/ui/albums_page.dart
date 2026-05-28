@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/custom_card.dart';
 import '../bloc/album_bloc.dart';
-import '../../models/album_entity.dart';
+import '../models/album_entity.dart';
 
 class AlbumsPage extends StatelessWidget {
   const AlbumsPage({super.key});
@@ -13,14 +14,16 @@ class AlbumsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Album Anda'),
+        title: Text('Album Anda', style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w400)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_photo_alternate_outlined),
+            icon: const Icon(Icons.add_photo_alternate_outlined, color: AppColors.secondary),
             onPressed: () => _showCreateAlbumDialog(context),
           ),
+          const SizedBox(width: 16),
         ],
       ),
       body: BlocBuilder<AlbumBloc, AlbumState>(
@@ -36,7 +39,7 @@ class AlbumsPage extends StatelessWidget {
               return _buildEmptyState(context);
             }
             return GridView.builder(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
@@ -77,30 +80,29 @@ class AlbumsPage extends StatelessWidget {
 
   // UI untuk kartu album
   Widget _buildAlbumCard(BuildContext context, AlbumEntity album) {
-    return GestureDetector(
+    return CustomCard(
+      padding: EdgeInsets.zero,
       onTap: () {
         context.push('/album-detail', extra: album);
       },
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.tertiary,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: Icon(
-                  Icons.folder_copy_outlined,
-                  size: 48,
-                  color: AppColors.secondary.withOpacity(0.5),
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.05),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24.0)),
+              ),
+              child: Icon(
+                Icons.folder_copy_outlined,
+                size: 48,
+                color: AppColors.secondary.withValues(alpha: 0.5),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -122,7 +124,6 @@ class AlbumsPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

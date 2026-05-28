@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/custom_card.dart';
 import '../bloc/history_bloc.dart';
-import '../../models/restoration_entity.dart';
+import '../models/restoration_entity.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -15,9 +16,10 @@ class HistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Riwayat Restorasi'),
+        title: Text('Riwayat Restorasi', style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w400)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: false,
       ),
       body: BlocBuilder<HistoryBloc, HistoryState>(
         builder: (context, state) {
@@ -39,7 +41,7 @@ class HistoryPage extends StatelessWidget {
 
             // Menampilkan list data dengan ListView
             return ListView.separated(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
               itemCount: historyList.length,
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
@@ -79,10 +81,9 @@ class HistoryPage extends StatelessWidget {
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     final formattedDate = dateFormat.format(item.createdAt);
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
+    return CustomCard(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
           children: [
             // Thumbnail gambar hasil restorasi
             ClipRRect(
@@ -132,7 +133,6 @@ class HistoryPage extends StatelessWidget {
             )
           ],
         ),
-      ),
     );
   }
 }
