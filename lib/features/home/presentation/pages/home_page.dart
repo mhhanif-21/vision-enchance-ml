@@ -5,8 +5,63 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/model_config.dart';
 
-class HomePage extends StatelessWidget {
+import '../../../history/presentation/pages/history_page.dart';
+import '../../../album/presentation/pages/albums_page.dart';
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = [
+    const _HomeContent(),
+    const AlbumsPage(),
+    const HistoryPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Beranda',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.photo_album_outlined),
+            selectedIcon: Icon(Icons.photo_album),
+            label: 'Album',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'Riwayat',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeContent extends StatelessWidget {
+  const _HomeContent();
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +74,10 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          // Tombol navigasi ke History
           IconButton(
-            icon: const Icon(Icons.history, color: AppColors.secondary),
-            onPressed: () => context.push('/history'),
-          )
+            icon: const Icon(Icons.settings_outlined, color: AppColors.secondary),
+            onPressed: () => context.push('/settings'),
+          ),
         ],
       ),
       body: Padding(
