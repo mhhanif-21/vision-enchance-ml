@@ -44,7 +44,7 @@ class AppTheme {
         ),
       ),
       // Konfigurasi style khusus untuk kartu penampung (Card)
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.primary,
         elevation: 0,
         shape: RoundedRectangleBorder(

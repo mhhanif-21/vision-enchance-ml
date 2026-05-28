@@ -7,6 +7,11 @@ class MemoryUtils {
     return DeviceTier.high;
   }
 
+  static Future<int> getAvailableRAM() async {
+    // Return dummy 4096MB (4GB) for now. In production, use a native channel plugin like 'system_info2'
+    return 4096;
+  }
+
   static int getMaxWidth(DeviceTier tier, ModelType type) {
     if (type == ModelType.lowLight) {
       return switch (tier) {

@@ -3,17 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'theme/app_theme.dart';
-import '../features/settings/presentation/bloc/settings_bloc.dart';
-import '../features/home/presentation/pages/home_page.dart';
-import '../features/restore/presentation/pages/upload_page.dart';
-import '../features/restore/presentation/pages/processing_page.dart';
-import '../features/restore/presentation/pages/result_page.dart';
-import '../features/history/presentation/pages/history_page.dart';
-import '../features/album/presentation/pages/album_detail_page.dart';
-import '../features/settings/presentation/pages/settings_page.dart';
-import '../features/album/domain/entities/album_entity.dart';
+import '../features/settings/bloc/settings_bloc.dart';
+import '../features/home/ui/home_page.dart';
+import '../features/restore/ui/upload_page.dart';
+import '../features/restore/ui/processing_page.dart';
+import '../features/restore/ui/result_page.dart';
+import '../features/history/ui/history_page.dart';
+import '../features/album/ui/album_detail_page.dart';
+import '../features/settings/ui/settings_page.dart';
+import '../features/album/models/album_entity.dart';
 import '../services/ml/onnx_inference_service.dart';
 import '../core/constants/model_config.dart';
+import '../features/restore/models/restoration_result.dart';
 
 class LuminaRestoreApp extends StatelessWidget {
   const LuminaRestoreApp({super.key});

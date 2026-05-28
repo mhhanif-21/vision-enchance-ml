@@ -7,8 +7,8 @@ import '../../core/utils/memory_utils.dart';
 import 'model_manager.dart';
 import 'image_preprocessor.dart';
 import 'image_postprocessor.dart';
-import '../../features/restore/domain/entities/restoration_result.dart';
-import '../../features/restore/domain/repositories/i_restore_repository.dart';
+import '../../features/restore/models/restoration_result.dart';
+import '../../features/restore/repositories/i_restore_repository.dart';
 
 class OnnxInferenceService implements IRestoreRepository {
   final ModelManager _modelManager;

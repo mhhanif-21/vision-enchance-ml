@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/storage/hive_setup.dart';
 import 'core/di/injection.dart';
-import 'features/history/presentation/bloc/history_bloc.dart';
-import 'features/restore/presentation/bloc/restore_bloc.dart';
-import 'features/album/presentation/bloc/album_bloc.dart';
-import 'features/settings/presentation/bloc/settings_bloc.dart';
+import 'features/history/bloc/history_bloc.dart';
+import 'features/restore/bloc/restore_bloc.dart';
+import 'features/album/bloc/album_bloc.dart';
+import 'features/settings/bloc/settings_bloc.dart';
 import 'app/app.dart';
 
 void main() async {
