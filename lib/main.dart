@@ -6,7 +6,8 @@ import 'core/storage/hive_setup.dart';
 import 'core/di/injection.dart';
 import 'features/history/presentation/bloc/history_bloc.dart';
 import 'features/restore/presentation/bloc/restore_bloc.dart';
-import 'app/app.dart';
+import 'features/album/presentation/bloc/album_bloc.dart';
+import 'features/settings/presentation/bloc/settings_bloc.dart';
 import 'app/app.dart';
 
 void main() async {
@@ -27,6 +28,12 @@ void main() async {
         ),
         BlocProvider(
           create: (_) => sl<RestoreBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => sl<AlbumBloc>()..add(LoadAlbums()),
+        ),
+        BlocProvider(
+          create: (_) => sl<SettingsBloc>()..add(LoadSettings()),
         ),
       ],
       child: const LuminaRestoreApp(),
