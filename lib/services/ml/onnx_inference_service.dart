@@ -50,7 +50,6 @@ class OnnxInferenceService implements IRestoreRepository {
       final restoredBytes = directResult.imageBytes;
       final outWidth = directResult.width;
       final outHeight = directResult.height;
-      const strategy = InferenceStrategy.direct;
 
       stopwatch.stop();
 
@@ -63,10 +62,8 @@ class OnnxInferenceService implements IRestoreRepository {
         outputWidth: outWidth,
         outputHeight: outHeight,
         processingTimeMs: stopwatch.elapsedMilliseconds,
-        strategy: strategy,
       );
-    } catch (e, stackTrace) {
-      print('DEBUG ONNX EXCEPTION: $e\n$stackTrace');
+    } catch (e) {
       stopwatch.stop();
       if (e is ModelLoadException) rethrow;
       if (e is ImageProcessingException) rethrow;

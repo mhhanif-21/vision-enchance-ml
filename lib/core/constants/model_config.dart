@@ -23,8 +23,6 @@ enum ModelType {
   }
 }
 
-enum InferenceStrategy { direct, tiled }
-
 enum DeviceTier { low, mid, high }
 
 class ModelConfig {

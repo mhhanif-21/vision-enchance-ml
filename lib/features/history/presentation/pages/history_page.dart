@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../bloc/history_bloc.dart';
-import '../data/models/restoration_model.dart';
+import '../../domain/entities/restoration_entity.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -74,7 +74,7 @@ class HistoryPage extends StatelessWidget {
   }
 
   // Membuat kartu UI untuk masing-masing riwayat foto.
-  Widget _buildHistoryCard(BuildContext context, RestorationModel item) {
+  Widget _buildHistoryCard(BuildContext context, RestorationEntity item) {
     // Memformat penulisan tanggal
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     final formattedDate = dateFormat.format(item.createdAt);

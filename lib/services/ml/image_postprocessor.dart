@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import '../../core/constants/app_constants.dart';
+import '../../core/constants/model_config.dart';
 
 class PostprocessResult {
   final Uint8List imageBytes;
@@ -19,18 +20,37 @@ class ImagePostprocessor {
     required List<double> outputData,
     required int width,
     required int height,
+    required ModelType modelType,
     int? targetWidth,
     int? targetHeight,
   }) {
     final image = img.Image(width: width, height: height);
+    final pixels = width * height;
 
-    int idx = 0;
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final r = _clampToByte(outputData[idx++] * 255.0);
-        final g = _clampToByte(outputData[idx++] * 255.0);
-        final b = _clampToByte(outputData[idx++] * 255.0);
-        image.setPixelRgb(x, y, r, g, b);
+    if (modelType == ModelType.deblurring) {
+      // Decode NCHW: [1, 3, H, W]
+      int rIdx = 0;
+      int gIdx = pixels;
+      int bIdx = pixels * 2;
+
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          final r = _clampToByte(outputData[rIdx++] * 255.0);
+          final g = _clampToByte(outputData[gIdx++] * 255.0);
+          final b = _clampToByte(outputData[bIdx++] * 255.0);
+          image.setPixelRgb(x, y, r, g, b);
+        }
+      }
+    } else {
+      // Decode NHWC: [1, H, W, 3]
+      int idx = 0;
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+          final r = _clampToByte(outputData[idx++] * 255.0);
+          final g = _clampToByte(outputData[idx++] * 255.0);
+          final b = _clampToByte(outputData[idx++] * 255.0);
+          image.setPixelRgb(x, y, r, g, b);
+        }
       }
     }
 

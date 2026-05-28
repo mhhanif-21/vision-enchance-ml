@@ -4,9 +4,6 @@
 import 'dart:typed_data';
 import '../../../../core/constants/model_config.dart';
 
-// Strategi inferensi yang digunakan
-enum InferenceStrategy { direct, tiled }
-
 class RestorationResult {
   final ModelType modelType;
   final Uint8List originalBytes;
@@ -16,7 +13,6 @@ class RestorationResult {
   final int outputWidth;
   final int outputHeight;
   final int processingTimeMs;
-  final InferenceStrategy strategy;
 
   const RestorationResult({
     required this.modelType,
@@ -27,6 +23,5 @@ class RestorationResult {
     required this.outputWidth,
     required this.outputHeight,
     required this.processingTimeMs,
-    required this.strategy,
   });
 }

@@ -1,10 +1,8 @@
 /// Halaman Result. Menampilkan perbandingan gambar sebelum dan sesudah direstorasi.
 /// Memungkinkan pengguna untuk melihat secara detail dan menyimpannya.
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -13,6 +11,7 @@ import '../../../../services/storage/file_storage_service.dart';
 import '../../../../core/di/injection.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/domain/entities/restoration_entity.dart';
+import '../../../album/presentation/bloc/album_bloc.dart';
 
 class ResultPage extends StatefulWidget {
   final RestorationResult result;
@@ -27,9 +26,7 @@ class _ResultPageState extends State<ResultPage> {
   bool _showOriginal = false;
   bool _isSaving = false;
 
-  // Fungsi untuk menyimpan gambar hasil restorasi ke direktori lokal (memori internal).
-  // Kemudian mencatat path-nya ke dalam database Hive melalui HistoryBloc.
-  Future<void> _saveResult() async {
+  Future<void> _saveResult({String? albumId}) async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
 
@@ -40,7 +37,6 @@ class _ResultPageState extends State<ResultPage> {
       // Menyimpan file menggunakan FileStorageService
       final originalPath = await storage.saveOriginal(uuid, widget.result.originalBytes);
       final restoredPath = await storage.saveRestored(uuid, widget.result.restoredBytes);
-      // Opsional: simpan thumbnail jika diperlukan (di-skip agar cepat)
 
       // Membuat model data untuk disimpan ke Hive
       final entity = RestorationEntity(
@@ -54,8 +50,17 @@ class _ResultPageState extends State<ResultPage> {
       // Menyimpan ke database melalui BLoC
       if (mounted) {
         context.read<HistoryBloc>().add(SaveHistory(entity));
+        
+        // Jika user memilih album, tambahkan ke album tersebut
+        if (albumId != null) {
+          context.read<AlbumBloc>().add(AddRestorationToAlbum(
+                albumId: albumId,
+                restorationId: uuid,
+              ));
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gambar berhasil disimpan ke History!')),
+          const SnackBar(content: Text('Gambar berhasil disimpan!')),
         );
         // Kembali ke halaman utama setelah sukses
         context.go('/');
@@ -69,6 +74,116 @@ class _ResultPageState extends State<ResultPage> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  // Menampilkan BottomSheet untuk memilih album
+  void _showSaveOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return BlocBuilder<AlbumBloc, AlbumState>(
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Simpan ke...',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    leading: const Icon(Icons.history),
+                    title: const Text('Riwayat Saja'),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _saveResult();
+                    },
+                  ),
+                  const Divider(),
+                  if (state is AlbumLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (state is AlbumLoaded && state.albums.isNotEmpty)
+                    ...state.albums.map((album) => ListTile(
+                          leading: const Icon(Icons.photo_album),
+                          title: Text(album.name),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _saveResult(albumId: album.id);
+                          },
+                        )),
+                  if (state is AlbumLoaded && state.albums.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        'Belum ada album.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showCreateAlbumDialog();
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Buat Album Baru'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Menampilkan dialog untuk membuat album baru sebelum menyimpan
+  void _showCreateAlbumDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Buat Album Baru'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'Nama Album',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = controller.text.trim();
+                if (name.isNotEmpty) {
+                  context.read<AlbumBloc>().add(CreateAlbum(name));
+                  Navigator.pop(ctx);
+                  // Setelah buat album, tampilkan opsi save lagi
+                  _showSaveOptions();
+                }
+              },
+              child: const Text('Buat'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -138,7 +253,7 @@ class _ResultPageState extends State<ResultPage> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: _isSaving ? null : _saveResult,
+              onPressed: _isSaving ? null : _showSaveOptions,
               icon: _isSaving 
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.save_alt),
