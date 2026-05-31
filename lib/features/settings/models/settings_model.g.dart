@@ -19,17 +19,20 @@ class SettingsModelAdapter extends TypeAdapter<SettingsModel> {
     return SettingsModel(
       isDarkMode: fields[0] as bool,
       updatedAt: fields[1] as DateTime,
+      storageUsedBytes: fields[2] == null ? 0 : fields[2] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, SettingsModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.isDarkMode)
       ..writeByte(1)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(2)
+      ..write(obj.storageUsedBytes);
   }
 
   @override

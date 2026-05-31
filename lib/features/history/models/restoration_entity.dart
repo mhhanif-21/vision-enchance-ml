@@ -1,29 +1,26 @@
-// File ini mendefinisikan entitas Restoration (Riwayat Restorasi).
-// Entitas ini berada di layer domain dan independen dari framework atau database eksternal.
-// Digunakan untuk merepresentasikan data restorasi dalam logika bisnis.
+// Entitas domain untuk riwayat restorasi foto.
+// Menyimpan semua metadata yang diperlukan untuk screen History dan Restoration Details.
 
 class RestorationEntity {
-  // ID unik untuk setiap restorasi
   final String id;
-  
-  // Lokasi file gambar asli yang diunggah pengguna
   final String originalImagePath;
-  
-  // Lokasi file gambar hasil setelah direstorasi
   final String restoredImagePath;
-  
-  // Jenis model yang digunakan (low_light atau deblurring)
+  final String thumbnailPath;
   final String modelType;
-  
-  // Waktu kapan restorasi ini dilakukan
   final DateTime createdAt;
+  final int processingTimeMs;
+  final int outputWidth;
+  final int outputHeight;
 
-  // Konstruktor untuk membuat objek RestorationEntity
   const RestorationEntity({
     required this.id,
     required this.originalImagePath,
     required this.restoredImagePath,
+    required this.thumbnailPath,
     required this.modelType,
     required this.createdAt,
+    required this.processingTimeMs,
+    required this.outputWidth,
+    required this.outputHeight,
   });
 }

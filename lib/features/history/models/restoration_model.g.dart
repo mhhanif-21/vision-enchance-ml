@@ -22,13 +22,17 @@ class RestorationModelAdapter extends TypeAdapter<RestorationModel> {
       restoredImagePath: fields[2] as String,
       modelType: fields[3] as String,
       createdAt: fields[4] as DateTime,
+      thumbnailPath: fields[5] == null ? '' : fields[5] as String,
+      processingTimeMs: fields[6] == null ? 0 : fields[6] as int,
+      outputWidth: fields[7] == null ? 0 : fields[7] as int,
+      outputHeight: fields[8] == null ? 0 : fields[8] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, RestorationModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +42,15 @@ class RestorationModelAdapter extends TypeAdapter<RestorationModel> {
       ..writeByte(3)
       ..write(obj.modelType)
       ..writeByte(4)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(5)
+      ..write(obj.thumbnailPath)
+      ..writeByte(6)
+      ..write(obj.processingTimeMs)
+      ..writeByte(7)
+      ..write(obj.outputWidth)
+      ..writeByte(8)
+      ..write(obj.outputHeight);
   }
 
   @override
