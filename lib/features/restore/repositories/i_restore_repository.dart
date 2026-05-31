@@ -1,10 +1,15 @@
-// File ini mendefinisikan antarmuka (interface) untuk proses restorasi gambar.
-// Implementasinya akan berada di ML Service layer.
+// Kontrak antarmuka untuk operasi restorasi gambar.
+// Mendukung callback progress agar UI dapat memperbarui tahap secara real-time.
 import 'dart:typed_data';
 import '../../../../core/constants/model_config.dart';
 import '../models/restoration_result.dart';
+import '../../restore/bloc/restore_bloc.dart';
 
 abstract class IRestoreRepository {
-  // Menjalankan proses restorasi AI dan mengembalikan hasil lengkap beserta metadata
-  Future<RestorationResult> restoreImage(Uint8List imageBytes, ModelType modelType);
+  // Menjalankan restorasi AI dan melaporkan tahap melalui callback opsional.
+  Future<RestorationResult> restoreImage(
+    Uint8List imageBytes,
+    ModelType modelType, {
+    void Function(RestorationStep step)? onStepChanged,
+  });
 }
