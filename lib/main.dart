@@ -1,5 +1,5 @@
-/// Entry point aplikasi Lumina Restore.
-/// Menginisialisasi service, repository, dan BLoC Provider sebelum UI dijalankan.
+// Entry point aplikasi Lumina Restore.
+// Menginisialisasi service, repository, dan BLoC Provider sebelum UI dijalankan.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/storage/hive_setup.dart';

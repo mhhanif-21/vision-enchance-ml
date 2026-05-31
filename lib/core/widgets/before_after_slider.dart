@@ -6,14 +6,14 @@ class BeforeAfterSlider extends StatefulWidget {
   final double initialPosition;
 
   const BeforeAfterSlider({
-    Key? key,
+    super.key,
     required this.beforeImage,
     required this.afterImage,
     this.initialPosition = 0.5,
-  }) : super(key: key);
+  });
 
   @override
-  _BeforeAfterSliderState createState() => _BeforeAfterSliderState();
+  State<BeforeAfterSlider> createState() => _BeforeAfterSliderState();
 }
 
 class _BeforeAfterSliderState extends State<BeforeAfterSlider> {

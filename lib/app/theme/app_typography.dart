@@ -1,5 +1,5 @@
-/// File ini mengatur tipografi aplikasi (Font size, weight, font family).
-/// Berdasarkan desain, menggunakan Manrope untuk judul dan Inter untuk body text.
+// File ini mengatur tipografi aplikasi (Font size, weight, font family).
+// Berdasarkan desain, menggunakan Manrope untuk judul dan Inter untuk body text.
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

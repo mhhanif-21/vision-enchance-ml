@@ -1,30 +1,29 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+// Smoke test dasar — memverifikasi LuminaRestoreApp dapat dimuat tanpa crash.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:vision_enchance_ml/features/settings/repositories/i_settings_repository.dart';
+import 'package:vision_enchance_ml/features/settings/repositories/manage_settings_usecase.dart';
+import 'package:vision_enchance_ml/features/settings/bloc/settings_bloc.dart';
+import 'package:vision_enchance_ml/features/settings/models/settings_entity.dart';
+import 'package:vision_enchance_ml/app/app.dart';
 
-import 'package:vision_enchance_ml/main.dart';
+// Mock interface agar SettingsBloc dapat diinstansiasi tanpa Hive sungguhan.
+class MockSettingsRepository extends Mock implements ISettingsRepository {}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('LuminaRestoreApp dapat dimuat tanpa crash', (WidgetTester tester) async {
+    final mockRepo = MockSettingsRepository();
+    when(() => mockRepo.getSettings()).thenAnswer((_) async => SettingsEntity.initial());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      BlocProvider<SettingsBloc>(
+        create: (_) => SettingsBloc(useCase: ManageSettingsUseCase(mockRepo)),
+        child: const LuminaRestoreApp(),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }

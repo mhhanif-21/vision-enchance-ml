@@ -1,4 +1,4 @@
-/// Mengatur navigasi (Routing) dan Tema Utama aplikasi.
+// Konfigurasi routing dan tema utama aplikasi Lumina Restore.
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,13 +8,14 @@ import '../features/home/ui/home_page.dart';
 import '../features/restore/ui/upload_page.dart';
 import '../features/restore/ui/processing_page.dart';
 import '../features/restore/ui/result_page.dart';
+import '../features/restore/ui/restoration_detail_page.dart';
 import '../features/history/ui/history_page.dart';
 import '../features/album/ui/album_detail_page.dart';
 import '../features/settings/ui/settings_page.dart';
 import '../features/album/models/album_entity.dart';
-import '../services/ml/onnx_inference_service.dart';
 import '../core/constants/model_config.dart';
 import '../features/restore/models/restoration_result.dart';
+import '../features/history/models/restoration_entity.dart';
 
 class LuminaRestoreApp extends StatelessWidget {
   const LuminaRestoreApp({super.key});
@@ -26,7 +27,7 @@ class LuminaRestoreApp extends StatelessWidget {
         return MaterialApp.router(
           title: 'Lumina Restore',
           theme: AppTheme.lightTheme,
-          darkTheme: ThemeData.dark(), // Tema gelap bawaan atau bisa dikustomisasi
+          darkTheme: AppTheme.darkTheme,
           themeMode: state.settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
           routerConfig: _router,
           debugShowCheckedModeBanner: false,
@@ -36,7 +37,7 @@ class LuminaRestoreApp extends StatelessWidget {
   }
 }
 
-// Konfigurasi GoRouter untuk menangani perpindahan halaman
+// Router terpusat dengan typed extra parameters untuk keamanan tipe data.
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
@@ -66,6 +67,13 @@ final _router = GoRouter(
       builder: (context, state) {
         final result = state.extra as RestorationResult;
         return ResultPage(result: result);
+      },
+    ),
+    GoRoute(
+      path: '/restoration-detail',
+      builder: (context, state) {
+        final entity = state.extra as RestorationEntity;
+        return RestorationDetailPage(entity: entity);
       },
     ),
     GoRoute(

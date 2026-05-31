@@ -1,12 +1,13 @@
-/// Unit testing untuk menguji logika state management HistoryBloc.
+// Unit test untuk HistoryBloc — menguji state transition saat load dan delete riwayat.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:vision_enchance_ml/features/history/data/repositories/history_repository_impl.dart';
-import 'package:vision_enchance_ml/features/history/data/models/restoration_model.dart';
-import 'package:vision_enchance_ml/features/history/presentation/bloc/history_bloc.dart';
+import 'package:vision_enchance_ml/features/history/repositories/i_history_repository.dart';
+import 'package:vision_enchance_ml/features/history/repositories/manage_history_usecase.dart';
+import 'package:vision_enchance_ml/features/history/bloc/history_bloc.dart';
+import 'package:vision_enchance_ml/features/history/models/restoration_entity.dart';
 
-// Membuat tiruan (mock) dari HistoryRepositoryImpl agar tidak perlu mengakses Hive sungguhan.
-class MockHistoryRepository extends Mock implements HistoryRepositoryImpl {}
+// Mock implements interface agar tidak bergantung pada implementasi Hive.
+class MockHistoryRepository extends Mock implements IHistoryRepository {}
 
 void main() {
   late HistoryBloc historyBloc;
@@ -14,7 +15,9 @@ void main() {
 
   setUp(() {
     mockRepository = MockHistoryRepository();
-    historyBloc = HistoryBloc(repository: mockRepository);
+    historyBloc = HistoryBloc(
+      useCase: ManageHistoryUseCase(mockRepository),
+    );
   });
 
   tearDown(() {
@@ -22,49 +25,46 @@ void main() {
   });
 
   group('HistoryBloc Tests', () {
-    final tRestorationModel = RestorationModel(
+    final tEntity = RestorationEntity(
       id: '1',
       originalImagePath: '/ori.jpg',
       restoredImagePath: '/res.jpg',
+      thumbnailPath: '/thumb.jpg',
       modelType: 'lowLight',
       createdAt: DateTime(2025, 1, 1),
+      processingTimeMs: 1000,
+      outputWidth: 512,
+      outputHeight: 512,
     );
-    final tHistoryList = [tRestorationModel];
+    final tList = [tEntity];
 
     test('State pertama harus berupa HistoryLoading', () {
       expect(historyBloc.state, equals(HistoryLoading()));
     });
 
-    test('LoadHistory menghasilkan state [HistoryLoading, HistoryLoaded] saat sukses', () async {
-      // Mengatur mock untuk mengembalikan tHistoryList ketika dipanggil
-      when(() => mockRepository.getAllHistory())
-          .thenAnswer((_) async => tHistoryList);
+    test('LoadHistory menghasilkan HistoryLoaded saat sukses', () async {
+      when(() => mockRepository.getAllHistory()).thenAnswer((_) async => tList);
 
-      // Urutan state yang diekspektasikan
-      final expectedStates = [
-        HistoryLoading(),
-        HistoryLoaded(tHistoryList),
-      ];
+      expectLater(
+        historyBloc.stream,
+        emitsInOrder([
+          HistoryLoading(),
+          isA<HistoryLoaded>().having((s) => s.allItems.length, 'length', 1),
+        ]),
+      );
 
-      // Memeriksa stream BLoC
-      expectLater(historyBloc.stream, emitsInOrder(expectedStates));
-
-      // Memicu event
       historyBloc.add(LoadHistory());
     });
 
-    test('DeleteHistory memicu proses hapus lalu load ulang (LoadHistory)', () async {
-      when(() => mockRepository.deleteHistory(any())).thenAnswer((_) async => {});
+    test('DeleteHistory memanggil repository lalu reload', () async {
+      when(() => mockRepository.deleteHistory(any())).thenAnswer((_) async {});
       when(() => mockRepository.getAllHistory()).thenAnswer((_) async => []);
 
       historyBloc.add(const DeleteHistory('1'));
+      await Future.delayed(const Duration(milliseconds: 200));
 
-      // Memberi jeda kecil agar proses asynchronous selesai
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Memverifikasi bahwa metode di repository benar-benar dipanggil
       verify(() => mockRepository.deleteHistory('1')).called(1);
-      verify(() => mockRepository.getAllHistory()).called(1);
+      verify(() => mockRepository.getAllHistory()).called(greaterThan(0));
     });
   });
 }

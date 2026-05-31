@@ -1,5 +1,5 @@
-/// File ini berisi definisi warna untuk aplikasi Lumina Restore.
-/// Warna disesuaikan dengan desain sistem "Soft Minimalist" dari Stitch.
+// File ini berisi definisi warna untuk aplikasi Lumina Restore.
+// Warna disesuaikan dengan desain sistem "Soft Minimalist" dari Stitch.
 import 'package:flutter/material.dart';
 
 class AppColors {

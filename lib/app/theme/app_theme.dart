@@ -1,5 +1,5 @@
-/// File ini menggabungkan konfigurasi warna dan tipografi menjadi ThemeData.
-/// ThemeData ini kemudian dipasangkan ke MaterialApp di main.dart.
+// File ini menggabungkan konfigurasi warna dan tipografi menjadi ThemeData.
+// ThemeData ini kemudian dipasangkan ke MaterialApp di main.dart.
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
@@ -60,7 +60,7 @@ class AppTheme {
           textStyle: AppTypography.labelMd,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surfaceContainerLowest,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -86,6 +86,61 @@ class AppTheme {
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  // Tema gelap yang menggunakan warna dark selaras dengan design system Stitch.
+  static ThemeData get darkTheme {
+    const darkSurface = Color(0xFF1A1C1C);
+    const darkOnSurface = Color(0xFFE2E3E3);
+    const darkContainer = Color(0xFF2A2C2C);
+    const darkSecondary = Color(0xFF7ECAC8);
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: darkSurface,
+      colorScheme: ColorScheme.dark(
+        primary: const Color(0xFFC7C7C3),
+        onPrimary: const Color(0xFF303030),
+        secondary: darkSecondary,
+        onSecondary: const Color(0xFF003332),
+        surface: darkSurface,
+        onSurface: darkOnSurface,
+        error: const Color(0xFFFFB4AB),
+      ),
+      textTheme: TextTheme(
+        displayLarge: AppTypography.headlineXl,
+        displayMedium: AppTypography.headlineLg,
+        displaySmall: AppTypography.headlineMd,
+        bodyLarge: AppTypography.bodyLg,
+        bodyMedium: AppTypography.bodyMd,
+        bodySmall: AppTypography.bodySm,
+        labelLarge: AppTypography.labelMd,
+      ).apply(bodyColor: darkOnSurface, displayColor: darkOnSurface),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: darkSecondary,
+          foregroundColor: const Color(0xFF003332),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: AppTypography.labelMd,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: darkContainer,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        margin: EdgeInsets.zero,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkContainer,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: darkSecondary, width: 2),
         ),
       ),
     );

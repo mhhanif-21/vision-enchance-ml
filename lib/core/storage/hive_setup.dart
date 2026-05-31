@@ -1,5 +1,5 @@
-/// File konfigurasi utama untuk inisialisasi Hive database saat aplikasi dimulai.
-/// Memastikan direktori dan box siap digunakan sebelum UI ditampilkan.
+// File konfigurasi utama untuk inisialisasi Hive database saat aplikasi dimulai.
+// Memastikan direktori dan box siap digunakan sebelum UI ditampilkan.
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../features/history/models/restoration_model.dart';
 import '../../features/album/models/album_model.dart';

@@ -1,5 +1,5 @@
-/// Unit testing untuk proses preprocessing gambar (ImagePreprocessor).
-/// Memastikan pengubahan resolusi dan normalisasi pixel (NCHW vs NHWC) berjalan benar.
+// Unit testing untuk proses preprocessing gambar (ImagePreprocessor).
+// Memastikan pengubahan resolusi dan normalisasi pixel (NCHW vs NHWC) berjalan benar.
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
@@ -38,6 +38,7 @@ void main() {
 
     test('Deblurring model menggunakan format NCHW dan kelipatan 32', () {
       final result = preprocessor.preprocess(dummyImageBytes, ModelType.deblurring);
+
 
       expect(result.width, equals(96));
       expect(result.height, equals(96));

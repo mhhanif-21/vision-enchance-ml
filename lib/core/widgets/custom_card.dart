@@ -7,12 +7,12 @@ class CustomCard extends StatelessWidget {
   final Color? backgroundColor;
 
   const CustomCard({
-    Key? key,
+    super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(24.0), // Generous padding by default
+    this.padding = const EdgeInsets.all(24.0),
     this.onTap,
     this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
