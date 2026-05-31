@@ -1,5 +1,5 @@
-/// Implementasi repository untuk mengelola data riwayat restorasi di Hive.
-/// Berfungsi sebagai jembatan antara logika BLoC dan penyimpanan lokal.
+// Implementasi repository untuk mengelola data riwayat restorasi di Hive.
+// Berfungsi sebagai jembatan antara logika BLoC dan penyimpanan lokal.
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/restoration_model.dart';
 import '../repositories/i_history_repository.dart';
@@ -37,6 +37,7 @@ class HistoryRepositoryImpl implements IHistoryRepository {
   }
 
   // Menghapus seluruh data riwayat restorasi di dalam box.
+  @override
   Future<void> clearAllHistory() async {
     final box = Hive.box<RestorationModel>(boxName);
     await box.clear();

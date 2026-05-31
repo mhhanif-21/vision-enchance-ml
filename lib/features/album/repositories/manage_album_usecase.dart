@@ -1,6 +1,4 @@
-// File ini mendefinisikan UseCase untuk mengelola Album.
-// BLoC akan memanggil fungsi-fungsi ini alih-alih memanggil repository langsung.
-
+// Use case untuk seluruh operasi Album: CRUD dan manajemen foto di dalam album.
 import '../models/album_entity.dart';
 import '../repositories/i_album_repository.dart';
 
@@ -9,36 +7,31 @@ class ManageAlbumUseCase {
 
   ManageAlbumUseCase(this.repository);
 
-  // Mengambil semua daftar album
-  Future<List<AlbumEntity>> getAllAlbums() {
-    return repository.getAllAlbums();
-  }
+  Future<List<AlbumEntity>> getAllAlbums() => repository.getAllAlbums();
+  Future<void> saveAlbum(AlbumEntity album) => repository.saveAlbum(album);
+  Future<void> deleteAlbum(String id) => repository.deleteAlbum(id);
+  Future<void> renameAlbum(String id, String newName) => repository.renameAlbum(id, newName);
 
-  // Menyimpan album baru atau mengupdate album yang sudah ada
-  Future<void> saveAlbum(AlbumEntity album) {
-    return repository.saveAlbum(album);
-  }
-
-  // Menambahkan foto restorasi ke dalam album
-  Future<void> addRestorationToAlbum(String albumId, String restorationId) async {
+  // Menambahkan restorasi ke album dengan pengecekan duplikat dan update cover.
+  Future<void> addRestorationToAlbum(
+    String albumId,
+    String restorationId,
+    String thumbnailPath,
+  ) async {
     final albums = await repository.getAllAlbums();
     final album = albums.firstWhere((a) => a.id == albumId);
-    
-    // Pastikan tidak ada duplikat ID restorasi
-    if (!album.restorationIds.contains(restorationId)) {
-      final updatedAlbum = AlbumEntity(
-        id: album.id,
-        name: album.name,
-        restorationIds: [...album.restorationIds, restorationId],
-        createdAt: album.createdAt,
-        updatedAt: DateTime.now(),
-      );
-      await repository.saveAlbum(updatedAlbum);
-    }
-  }
 
-  // Menghapus album
-  Future<void> deleteAlbum(String id) {
-    return repository.deleteAlbum(id);
+    if (album.restorationIds.contains(restorationId)) return;
+
+    final updated = AlbumEntity(
+      id: album.id,
+      name: album.name,
+      restorationIds: [...album.restorationIds, restorationId],
+      // Gunakan thumbnail sebagai cover jika belum ada cover.
+      coverImagePath: album.coverImagePath ?? thumbnailPath,
+      createdAt: album.createdAt,
+      updatedAt: DateTime.now(),
+    );
+    await repository.saveAlbum(updated);
   }
 }

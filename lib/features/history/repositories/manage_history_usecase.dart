@@ -1,34 +1,15 @@
-// File ini mendefinisikan UseCase untuk mengelola riwayat restorasi.
-// Berisi logika bisnis spesifik terkait fitur riwayat.
-// UseCase ini bertindak sebagai perantara antara Presentation Layer (BLoC) dan Data Layer.
-
+// Use case untuk mengelola seluruh operasi pada riwayat restorasi.
 import '../models/restoration_entity.dart';
 import '../repositories/i_history_repository.dart';
 
 class ManageHistoryUseCase {
-  // Referensi ke abstraksi repositori riwayat
   final IHistoryRepository repository;
 
-  // Injeksi dependensi melalui konstruktor
   ManageHistoryUseCase(this.repository);
 
-  // Mengambil semua riwayat dari repositori
-  Future<List<RestorationEntity>> getAllHistory() {
-    return repository.getAllHistory();
-  }
-
-  // Menyimpan entitas restorasi baru
-  Future<void> saveRestoration(RestorationEntity restoration) {
-    return repository.saveRestoration(restoration);
-  }
-
-  // Menghapus satu riwayat berdasarkan ID
-  Future<void> deleteHistory(String id) {
-    return repository.deleteHistory(id);
-  }
-
-  // Menghapus banyak riwayat secara massal
-  Future<void> deleteMultipleHistory(List<String> ids) {
-    return repository.deleteMultipleHistory(ids);
-  }
+  Future<List<RestorationEntity>> getAllHistory() => repository.getAllHistory();
+  Future<void> saveRestoration(RestorationEntity restoration) => repository.saveRestoration(restoration);
+  Future<void> deleteHistory(String id) => repository.deleteHistory(id);
+  Future<void> deleteMultipleHistory(List<String> ids) => repository.deleteMultipleHistory(ids);
+  Future<void> clearAllHistory() => repository.clearAllHistory();
 }

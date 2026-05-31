@@ -25,9 +25,13 @@ class SettingsPage extends StatelessWidget {
       ),
       body: BlocConsumer<SettingsBloc, SettingsState>(
         listener: (context, state) {
-          if (state.error != null) {
+          if (state.errorMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error!)),
+              SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.red),
+            );
+          } else if (state.successMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.successMessage!)),
             );
           }
         },
@@ -55,7 +59,7 @@ class SettingsPage extends StatelessWidget {
                   title: const Text('Mode Gelap'),
                   subtitle: const Text('Gunakan tema gelap untuk aplikasi'),
                   value: isDark,
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                   onChanged: (value) {
                     context.read<SettingsBloc>().add(ToggleTheme(value));
                   },
@@ -73,11 +77,30 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 16),
               CustomCard(
                 padding: EdgeInsets.zero,
-                child: ListTile(
-                  leading: const Icon(Icons.delete_sweep, color: AppColors.error),
-                  title: const Text('Hapus Data Cache'),
-                  subtitle: const Text('Menghapus semua Riwayat dan Album yang telah dibuat.'),
-                  onTap: () => _showClearCacheDialog(context),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.history, color: AppColors.error),
+                      title: const Text('Hapus Riwayat'),
+                      subtitle: const Text('Menghapus semua riwayat restorasi.'),
+                      onTap: () => _showClearDialog(
+                        context,
+                        title: 'Hapus Riwayat?',
+                        onConfirm: () => context.read<SettingsBloc>().add(ClearHistoryCache()),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.photo_album, color: AppColors.error),
+                      title: const Text('Hapus Album'),
+                      subtitle: const Text('Menghapus semua album yang telah dibuat.'),
+                      onTap: () => _showClearDialog(
+                        context,
+                        title: 'Hapus Album?',
+                        onConfirm: () => context.read<SettingsBloc>().add(ClearAlbumsCache()),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -87,32 +110,29 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  // Dialog konfirmasi untuk menghindari penghapusan data secara tidak sengaja
-  void _showClearCacheDialog(BuildContext context) {
+  // Dialog konfirmasi generik untuk menghindari penghapusan data secara tidak sengaja.
+  void _showClearDialog(
+    BuildContext context, {
+    required String title,
+    required VoidCallback onConfirm,
+  }) {
     showDialog(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Hapus Data Cache?'),
-          content: const Text(
-            'Tindakan ini akan menghapus permanen seluruh riwayat restorasi dan daftar album Anda. Lanjutkan?',
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: const Text('Tindakan ini tidak dapat dibatalkan. Lanjutkan?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () {
+              onConfirm();
+              Navigator.pop(ctx);
+            },
+            child: const Text('Hapus'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              onPressed: () {
-                context.read<SettingsBloc>().add(ClearAppCache());
-                Navigator.pop(ctx);
-              },
-              child: const Text('Hapus'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 }

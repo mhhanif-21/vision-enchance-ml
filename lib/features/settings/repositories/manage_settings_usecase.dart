@@ -1,5 +1,4 @@
-// File ini mendefinisikan UseCase untuk modul Pengaturan (Settings).
-// Berperan sebagai perantara BLoC dengan Repository layer.
+// Use case untuk seluruh operasi pengaturan aplikasi.
 import '../models/settings_entity.dart';
 import '../repositories/i_settings_repository.dart';
 
@@ -8,33 +7,17 @@ class ManageSettingsUseCase {
 
   ManageSettingsUseCase(this.repository);
 
-  // Mengambil pengaturan yang tersimpan
-  Future<SettingsEntity> getSettings() {
-    return repository.getSettings();
-  }
+  Future<SettingsEntity> getSettings() => repository.getSettings();
+  Future<void> saveSettings(SettingsEntity settings) => repository.saveSettings(settings);
+  Future<void> clearHistory() => repository.clearHistory();
+  Future<void> clearAlbums() => repository.clearAlbums();
+  Future<int> calculateStorageUsed() => repository.calculateStorageUsed();
 
-  // Menyimpan pengaturan baru
-  Future<void> saveSettings(SettingsEntity settings) {
-    return repository.saveSettings(settings);
-  }
-
-  // Mengubah mode tema
+  // Mengubah tema dan menyimpannya secara atomik.
   Future<void> toggleDarkMode(bool isDarkMode) async {
-    final currentSettings = await repository.getSettings();
-    final newSettings = currentSettings.copyWith(
-      isDarkMode: isDarkMode,
-      updatedAt: DateTime.now(),
+    final current = await repository.getSettings();
+    await repository.saveSettings(
+      current.copyWith(isDarkMode: isDarkMode, updatedAt: DateTime.now()),
     );
-    await repository.saveSettings(newSettings);
-  }
-
-  // Menghapus semua riwayat pengguna
-  Future<void> clearHistory() {
-    return repository.clearHistory();
-  }
-
-  // Menghapus semua album pengguna
-  Future<void> clearAlbums() {
-    return repository.clearAlbums();
   }
 }

@@ -1,5 +1,5 @@
-/// Halaman History. Menampilkan daftar foto yang pernah direstorasi oleh pengguna.
-/// Diambil dari Hive local database menggunakan HistoryBloc.
+// Halaman History. Menampilkan daftar foto yang pernah direstorasi oleh pengguna.
+// Diambil dari Hive local database menggunakan HistoryBloc.
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,14 +32,12 @@ class HistoryPage extends StatelessWidget {
             // Tampilan jika terjadi error membaca database
             return Center(child: Text(state.message));
           } else if (state is HistoryLoaded) {
-            final historyList = state.historyList;
+            final historyList = state.filteredItems;
 
-            // Jika daftar riwayat kosong
             if (historyList.isEmpty) {
               return _buildEmptyState(context);
             }
 
-            // Menampilkan list data dengan ListView
             return ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
               itemCount: historyList.length,

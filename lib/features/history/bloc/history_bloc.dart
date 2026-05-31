@@ -1,5 +1,4 @@
-// File ini berisi logika BLoC untuk mengelola riwayat restorasi foto.
-// BLoC ini mengambil data dari ManageHistoryUseCase dan menyediakannya ke UI.
+// BLoC untuk riwayat restorasi dengan dukungan filter berdasarkan jenis model.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../models/restoration_entity.dart';
@@ -14,10 +13,8 @@ abstract class HistoryEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// Event untuk memuat semua riwayat dari database lokal.
 class LoadHistory extends HistoryEvent {}
 
-// Event untuk menghapus satu riwayat berdasarkan ID-nya.
 class DeleteHistory extends HistoryEvent {
   final String id;
   const DeleteHistory(this.id);
@@ -26,14 +23,30 @@ class DeleteHistory extends HistoryEvent {
   List<Object> get props => [id];
 }
 
-// Event untuk menyimpan riwayat baru.
+// Event untuk menghapus banyak riwayat sekaligus (bulk delete).
+class DeleteMultipleHistory extends HistoryEvent {
+  final List<String> ids;
+  const DeleteMultipleHistory(this.ids);
+
+  @override
+  List<Object> get props => [ids];
+}
+
 class SaveHistory extends HistoryEvent {
   final RestorationEntity restoration;
-  
   const SaveHistory(this.restoration);
 
   @override
   List<Object> get props => [restoration];
+}
+
+// Event untuk memfilter riwayat berdasarkan tipe model (null = tampilkan semua).
+class FilterHistory extends HistoryEvent {
+  final String? modelTypeFilter;
+  const FilterHistory(this.modelTypeFilter);
+
+  @override
+  List<Object> get props => [modelTypeFilter ?? ''];
 }
 
 // --- States ---
@@ -45,23 +58,25 @@ abstract class HistoryState extends Equatable {
   List<Object> get props => [];
 }
 
-// State saat riwayat sedang dimuat.
 class HistoryLoading extends HistoryState {}
 
-// State saat riwayat berhasil dimuat dan siap ditampilkan.
 class HistoryLoaded extends HistoryState {
-  final List<RestorationEntity> historyList;
+  final List<RestorationEntity> allItems;
+  final List<RestorationEntity> filteredItems;
+  final String? activeFilter;
 
-  const HistoryLoaded(this.historyList);
+  const HistoryLoaded({
+    required this.allItems,
+    required this.filteredItems,
+    this.activeFilter,
+  });
 
   @override
-  List<Object> get props => [historyList];
+  List<Object> get props => [allItems, filteredItems, activeFilter ?? ''];
 }
 
-// State jika terjadi error saat memuat data riwayat.
 class HistoryError extends HistoryState {
   final String message;
-
   const HistoryError(this.message);
 
   @override
@@ -74,45 +89,69 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   final ManageHistoryUseCase useCase;
 
   HistoryBloc({required this.useCase}) : super(HistoryLoading()) {
-    // Mendaftarkan handler untuk event pemuatan data.
     on<LoadHistory>(_onLoadHistory);
-    
-    // Mendaftarkan handler untuk event penghapusan data.
-    on<DeleteHistory>(_onDeleteHistory);
-    
-    // Mendaftarkan handler untuk menyimpan data.
     on<SaveHistory>(_onSaveHistory);
+    on<DeleteHistory>(_onDeleteHistory);
+    on<DeleteMultipleHistory>(_onDeleteMultipleHistory);
+    on<FilterHistory>(_onFilterHistory);
   }
 
-  // Fungsi untuk menangani pemuatan data riwayat dari repository lokal.
   Future<void> _onLoadHistory(LoadHistory event, Emitter<HistoryState> emit) async {
     emit(HistoryLoading());
     try {
       final history = await useCase.getAllHistory();
-      emit(HistoryLoaded(history));
+      emit(HistoryLoaded(allItems: history, filteredItems: history));
     } catch (e) {
       emit(HistoryError('Gagal memuat riwayat: $e'));
     }
   }
 
-  // Fungsi untuk menyimpan riwayat baru.
   Future<void> _onSaveHistory(SaveHistory event, Emitter<HistoryState> emit) async {
     try {
       await useCase.saveRestoration(event.restoration);
-      add(LoadHistory()); // Muat ulang setelah disimpan
+      add(LoadHistory());
     } catch (e) {
       emit(HistoryError('Gagal menyimpan riwayat: $e'));
     }
   }
 
-  // Fungsi untuk menghapus riwayat dari database Hive.
   Future<void> _onDeleteHistory(DeleteHistory event, Emitter<HistoryState> emit) async {
     try {
       await useCase.deleteHistory(event.id);
-      // Memuat ulang data setelah penghapusan sukses.
       add(LoadHistory());
     } catch (e) {
       emit(HistoryError('Gagal menghapus riwayat: $e'));
     }
+  }
+
+  // Menghapus banyak item sekaligus lalu memuat ulang daftar.
+  Future<void> _onDeleteMultipleHistory(
+    DeleteMultipleHistory event,
+    Emitter<HistoryState> emit,
+  ) async {
+    try {
+      await useCase.deleteMultipleHistory(event.ids);
+      add(LoadHistory());
+    } catch (e) {
+      emit(HistoryError('Gagal menghapus riwayat: $e'));
+    }
+  }
+
+  // Memfilter daftar riwayat secara lokal berdasarkan tipe model tanpa re-fetch.
+  void _onFilterHistory(FilterHistory event, Emitter<HistoryState> emit) {
+    final current = state;
+    if (current is! HistoryLoaded) return;
+
+    final filtered = event.modelTypeFilter == null
+        ? current.allItems
+        : current.allItems
+            .where((e) => e.modelType == event.modelTypeFilter)
+            .toList();
+
+    emit(HistoryLoaded(
+      allItems: current.allItems,
+      filteredItems: filtered,
+      activeFilter: event.modelTypeFilter,
+    ));
   }
 }

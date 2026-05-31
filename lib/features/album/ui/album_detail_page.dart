@@ -33,8 +33,8 @@ class AlbumDetailPage extends StatelessWidget {
       body: BlocBuilder<HistoryBloc, HistoryState>(
         builder: (context, state) {
           if (state is HistoryLoaded) {
-            // Memfilter history berdasarkan ID yang ada di dalam album
-            final photosInAlbum = state.historyList
+            // Filter history berdasarkan ID yang ada di dalam album.
+            final photosInAlbum = state.allItems
                 .where((item) => album.restorationIds.contains(item.id))
                 .toList();
 

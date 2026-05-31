@@ -1,16 +1,11 @@
-// File ini mendefinisikan antarmuka (interface) untuk pengaturan aplikasi.
+// Kontrak antarmuka untuk repositori pengaturan aplikasi.
 import '../models/settings_entity.dart';
 
 abstract class ISettingsRepository {
-  // Mengambil konfigurasi aplikasi saat ini
   Future<SettingsEntity> getSettings();
-
-  // Menyimpan pembaruan konfigurasi aplikasi
   Future<void> saveSettings(SettingsEntity settings);
-
-  // Menghapus semua riwayat restorasi (History) dari perangkat
   Future<void> clearHistory();
-
-  // Menghapus semua daftar album yang telah dibuat
   Future<void> clearAlbums();
+  // Menghitung total ukuran folder penyimpanan aplikasi dalam byte.
+  Future<int> calculateStorageUsed();
 }
