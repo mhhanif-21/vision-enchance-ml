@@ -1,13 +1,16 @@
-/// Halaman beranda (Dashboard) dari Lumina Restore.
-/// Menampilkan pilihan tipe restorasi dan tombol untuk melihat riwayat (History).
+// Halaman utama (Dashboard) — menampilkan pilihan restorasi dan aktivitas terbaru.
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/model_config.dart';
-import '../../../../core/widgets/custom_card.dart';
-
+import '../../history/bloc/history_bloc.dart';
+import '../../history/models/restoration_entity.dart';
 import '../../history/ui/history_page.dart';
-import '../../album/ui/albums_page.dart';
+import '../../settings/ui/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,164 +22,442 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const _HomeContent(),
-    const AlbumsPage(),
-    const HistoryPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: IndexedStack(
         index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        backgroundColor: AppColors.surfaceContainerLowest,
-        elevation: 0,
-        indicatorColor: AppColors.secondaryContainer,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: AppColors.onSecondaryContainer),
-            label: 'Beranda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.photo_album_outlined),
-            selectedIcon: Icon(Icons.photo_album, color: AppColors.onSecondaryContainer),
-            label: 'Album',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history, color: AppColors.onSecondaryContainer),
-            label: 'Riwayat',
-          ),
+        children: const [
+          _DashboardContent(),
+          HistoryPage(),
+          SettingsPage(),
         ],
+      ),
+      bottomNavigationBar: _BottomNav(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
       ),
     );
   }
 }
 
-class _HomeContent extends StatelessWidget {
-  const _HomeContent();
+// Widget bottom navigation sesuai desain Stitch.
+class _BottomNav extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _BottomNav({required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Lumina Restore',
-          style: theme.textTheme.displaySmall?.copyWith(
-            fontWeight: FontWeight.w400,
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFCF8).withValues(alpha: 0.95),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(top: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.4))),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withValues(alpha: 0.06),
+            blurRadius: 30,
+            offset: const Offset(0, -8),
           ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: AppColors.secondary),
-            onPressed: () => context.push('/settings'),
-          ),
-          const SizedBox(width: 16),
         ],
       ),
-      body: SingleChildScrollView(
+      child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0), // Ample whitespace
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text(
-                'Pilih Jenis\nRestorasi',
-                style: theme.textTheme.displayLarge,
-              ),
-              const SizedBox(height: 64), // Section Gap
-              // Kartu opsi Low-Light
-              _buildTypeCard(
-                context,
-                title: 'Peningkatan Cahaya',
-                subtitle: 'Terangkan foto yang gelap atau kurang pencahayaan.',
-                icon: Icons.brightness_6,
-                modelType: ModelType.lowLight,
-              ),
-              const SizedBox(height: 32),
-              // Kartu opsi Deblurring
-              _buildTypeCard(
-                context,
-                title: 'Penghilangan Blur',
-                subtitle: 'Pertajam foto yang buram atau kabur dengan cepat.',
-                icon: Icons.blur_off,
-                modelType: ModelType.deblurring,
-              ),
-              const SizedBox(height: 64),
+              _NavItem(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, label: 'Dashboard', index: 0, currentIndex: currentIndex, onTap: onTap),
+              _NavItem(icon: Icons.history_outlined, activeIcon: Icons.history, label: 'History', index: 1, currentIndex: currentIndex, onTap: onTap),
+              _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, label: 'Settings', index: 2, currentIndex: currentIndex, onTap: onTap),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  // Membuat komponen kartu opsi restorasi yang dapat ditekan.
-  Widget _buildTypeCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required ModelType modelType,
-  }) {
-    return CustomCard(
-      onTap: () {
-        // Navigasi ke layar upload dengan melempar parameter tipe model
-        context.push('/upload', extra: modelType);
-      },
-      padding: const EdgeInsets.all(28.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Lingkaran aksen untuk icon
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final int index;
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.index,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = index == currentIndex;
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.accent.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(isActive ? activeIcon : icon, color: isActive ? AppColors.accent : AppColors.outline, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label.toUpperCase(),
+              style: GoogleFonts.manrope(
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                letterSpacing: 0.8,
+                color: isActive ? AppColors.accent : AppColors.outline,
+              ),
             ),
-            child: Icon(icon, color: AppColors.secondary, size: 28),
-          ),
-          const SizedBox(width: 24),
-          // Teks penjelasan
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineMd?.copyWith(fontSize: 20),
-                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Konten utama halaman Dashboard.
+class _DashboardContent extends StatelessWidget {
+  const _DashboardContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(32, 32, 32, 120),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Header overview
+                Text('Overview', style: AppTypography.headlineXl.copyWith(color: AppColors.onBackground)),
                 const SizedBox(height: 8),
                 Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
+                  'Pilihan restorasi dan aktivitas terbaru Anda.',
+                  style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+                ),
+                const SizedBox(height: 48),
+                // Section restoration type
+                Text('Pilih Jenis Restorasi', style: AppTypography.headlineLg.copyWith(color: AppColors.onBackground)),
+                const SizedBox(height: 24),
+                _RestorationTypeCard(
+                  title: 'Perbaiki Blur',
+                  subtitle: 'Pertajam subjek yang tidak fokus dan pulihkan detail halus dari blur.',
+                  icon: Icons.blur_on_outlined,
+                  modelType: ModelType.deblurring,
+                ),
+                const SizedBox(height: 16),
+                _RestorationTypeCard(
+                  title: 'Tingkatkan Low-Light',
+                  subtitle: 'Cerahkan foto gelap, kurangi noise, dan seimbangkan eksposur.',
+                  icon: Icons.wb_sunny_outlined,
+                  modelType: ModelType.lowLight,
+                ),
+                const SizedBox(height: 48),
+                // Section recent activity
+                _RecentActivitySection(),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverAppBar _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: const Color(0xFFFDFCF8),
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0.5,
+      shadowColor: AppColors.accent.withValues(alpha: 0.08),
+      title: Text(
+        'RESTORATION',
+        style: GoogleFonts.manrope(
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+          letterSpacing: 5,
+          color: AppColors.onBackground,
+        ),
+      ),
+      centerTitle: true,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: AppColors.surfaceContainerHigh,
+            child: const Icon(Icons.person_outline, size: 18, color: AppColors.outline),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Kartu pilihan jenis restorasi dengan hover animation.
+class _RestorationTypeCard extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final ModelType modelType;
+
+  const _RestorationTypeCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.modelType,
+  });
+
+  @override
+  State<_RestorationTypeCard> createState() => _RestorationTypeCardState();
+}
+
+class _RestorationTypeCardState extends State<_RestorationTypeCard> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        context.push('/upload', extra: widget.modelType);
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(0, _pressed ? 2 : 0, 0),
+        padding: const EdgeInsets.all(28),
+        constraints: const BoxConstraints(minHeight: 160),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: _pressed ? AppColors.outlineVariant : Colors.transparent),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accent.withValues(alpha: _pressed ? 0.04 : 0.07),
+              blurRadius: _pressed ? 10 : 24,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Icon circle
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerHigh,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(widget.icon, size: 28, color: AppColors.primary),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.title, style: AppTypography.headlineMd.copyWith(color: AppColors.onBackground, fontSize: 20)),
+                  const SizedBox(height: 6),
+                  Text(widget.subtitle, style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.outlineVariant),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Section aktivitas terbaru dari history.
+class _RecentActivitySection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HistoryBloc, HistoryState>(
+      builder: (context, state) {
+        final items = state is HistoryLoaded ? state.filteredItems.take(2).toList() : <RestorationEntity>[];
+        final total = state is HistoryLoaded ? state.filteredItems.length : 0;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Aktivitas Terbaru', style: AppTypography.headlineMd.copyWith(color: AppColors.onBackground)),
+                TextButton.icon(
+                  onPressed: () => context.push('/history'),
+                  icon: const Icon(Icons.arrow_forward, size: 16, color: AppColors.secondary),
+                  label: Text('Lihat Semua', style: AppTypography.labelMd.copyWith(color: AppColors.secondary)),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // Stat card
+            Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: _StatCard(count: total),
+                ),
+                const SizedBox(width: 16),
+                // Recent list
+                if (items.isNotEmpty)
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.surfaceContainerHigh),
+                        boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 4))],
+                      ),
+                      child: Column(
+                        children: items.asMap().entries.map((e) {
+                          final item = e.value;
+                          final isLast = e.key == items.length - 1;
+                          return Column(
+                            children: [
+                              _HistoryListItem(entity: item),
+                              if (!isLast) ...[
+                                const SizedBox(height: 8),
+                                Divider(height: 1, color: AppColors.surfaceContainerHigh),
+                                const SizedBox(height: 8),
+                              ],
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.surfaceContainerHigh),
+                      ),
+                      child: Center(
+                        child: Text('Belum ada riwayat', style: AppTypography.bodySm.copyWith(color: AppColors.outline)),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// Kartu statistik jumlah foto terrestorasi.
+class _StatCard extends StatelessWidget {
+  final int count;
+  const _StatCard({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.secondaryContainer.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.secondaryContainer.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$count',
+            style: GoogleFonts.manrope(fontSize: 48, fontWeight: FontWeight.w300, color: AppColors.onBackground, height: 1),
           ),
-          const SizedBox(width: 16),
-          const Icon(Icons.arrow_forward_ios, color: AppColors.outlineVariant, size: 16),
+          const SizedBox(height: 4),
+          Text('Foto', style: AppTypography.labelMd.copyWith(color: AppColors.onSurfaceVariant, letterSpacing: 1)),
+          Text('Terrestorasi', style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
         ],
       ),
     );
   }
 }
 
+// Item list riwayat restorasi terbaru.
+class _HistoryListItem extends StatelessWidget {
+  final RestorationEntity entity;
+  const _HistoryListItem({required this.entity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Thumbnail atau icon placeholder
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(8)),
+          child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(entity.thumbnailPath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const Icon(Icons.image_outlined, size: 20, color: AppColors.outline),
+                ),
+              ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(entity.modelType, style: AppTypography.labelMd.copyWith(color: AppColors.onBackground), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                _formatDate(entity.createdAt),
+                style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+        const Icon(Icons.check_circle_outline, color: AppColors.secondary, size: 20),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inDays == 0) return 'Hari ini';
+    if (diff.inDays == 1) return 'Kemarin';
+    return '${diff.inDays} hari lalu';
+  }
+}
