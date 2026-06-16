@@ -20,14 +20,22 @@ class AppTheme {
         surface: AppColors.surface,
         onSurface: AppColors.onSurface,
       ),
-      textTheme: TextTheme(
+      textTheme: ThemeData.light().textTheme.copyWith(
         displayLarge: AppTypography.headlineXl,
         displayMedium: AppTypography.headlineLg,
         displaySmall: AppTypography.headlineMd,
+        headlineLarge: AppTypography.headlineXl,
+        headlineMedium: AppTypography.headlineLg,
+        headlineSmall: AppTypography.headlineMd,
+        titleLarge: AppTypography.headlineMd,
+        titleMedium: AppTypography.bodyLg,
+        titleSmall: AppTypography.bodyMd,
         bodyLarge: AppTypography.bodyLg,
         bodyMedium: AppTypography.bodyMd,
         bodySmall: AppTypography.bodySm,
         labelLarge: AppTypography.labelMd,
+        labelMedium: AppTypography.bodySm,
+        labelSmall: AppTypography.bodySm,
       ).apply(
         bodyColor: AppColors.onSurface,
         displayColor: AppColors.onSurface,
@@ -111,14 +119,22 @@ class AppTheme {
         onSurface: darkOnSurface,
         error: const Color(0xFFFFB4AB),
       ),
-      textTheme: TextTheme(
+      textTheme: ThemeData.dark().textTheme.copyWith(
         displayLarge: AppTypography.headlineXl,
         displayMedium: AppTypography.headlineLg,
         displaySmall: AppTypography.headlineMd,
+        headlineLarge: AppTypography.headlineXl,
+        headlineMedium: AppTypography.headlineLg,
+        headlineSmall: AppTypography.headlineMd,
+        titleLarge: AppTypography.headlineMd,
+        titleMedium: AppTypography.bodyLg,
+        titleSmall: AppTypography.bodyMd,
         bodyLarge: AppTypography.bodyLg,
         bodyMedium: AppTypography.bodyMd,
         bodySmall: AppTypography.bodySm,
         labelLarge: AppTypography.labelMd,
+        labelMedium: AppTypography.bodySm,
+        labelSmall: AppTypography.bodySm,
       ).apply(bodyColor: darkOnSurface, displayColor: darkOnSurface),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

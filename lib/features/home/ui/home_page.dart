@@ -22,21 +22,23 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
+  void _switchTab(int index) => setState(() => _currentIndex = index);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          _DashboardContent(),
-          HistoryPage(),
-          SettingsPage(),
+        children: [
+          _DashboardContent(onSwitchTab: _switchTab),
+          const HistoryPage(),
+          const SettingsPage(),
         ],
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        onTap: _switchTab,
       ),
     );
   }
@@ -51,14 +53,15 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFDFCF8).withValues(alpha: 0.95),
+        color: colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border(top: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.4))),
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4))),
         boxShadow: [
           BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.06),
+            color: colorScheme.secondary.withValues(alpha: 0.06),
             blurRadius: 30,
             offset: const Offset(0, -8),
           ),
@@ -135,12 +138,14 @@ class _NavItem extends StatelessWidget {
 
 // Konten utama halaman Dashboard.
 class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
+  final ValueChanged<int> onSwitchTab;
+  const _DashboardContent({required this.onSwitchTab});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           _buildAppBar(context),
@@ -149,15 +154,15 @@ class _DashboardContent extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Header overview
-                Text('Overview', style: AppTypography.headlineXl.copyWith(color: AppColors.onBackground)),
+                Text('Overview', style: AppTypography.headlineXl.copyWith(color: colorScheme.onSurface)),
                 const SizedBox(height: 8),
                 Text(
                   'Pilihan restorasi dan aktivitas terbaru Anda.',
-                  style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+                  style: AppTypography.bodyMd.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 48),
                 // Section restoration type
-                Text('Pilih Jenis Restorasi', style: AppTypography.headlineLg.copyWith(color: AppColors.onBackground)),
+                Text('Pilih Jenis Restorasi', style: AppTypography.headlineLg.copyWith(color: colorScheme.onSurface)),
                 const SizedBox(height: 24),
                 _RestorationTypeCard(
                   title: 'Perbaiki Blur',
@@ -174,7 +179,7 @@ class _DashboardContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 48),
                 // Section recent activity
-                _RecentActivitySection(),
+                _RecentActivitySection(onViewAll: () => onSwitchTab(1)),
               ]),
             ),
           ),
@@ -184,20 +189,21 @@ class _DashboardContent extends StatelessWidget {
   }
 
   SliverAppBar _buildAppBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SliverAppBar(
       pinned: true,
-      backgroundColor: const Color(0xFFFDFCF8),
+      backgroundColor: colorScheme.surface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0.5,
-      shadowColor: AppColors.accent.withValues(alpha: 0.08),
+      shadowColor: colorScheme.secondary.withValues(alpha: 0.08),
       title: Text(
         'RESTORATION',
         style: GoogleFonts.manrope(
           fontSize: 16,
           fontWeight: FontWeight.w300,
           letterSpacing: 5,
-          color: AppColors.onBackground,
+          color: colorScheme.onSurface,
         ),
       ),
       centerTitle: true,
@@ -238,6 +244,8 @@ class _RestorationTypeCardState extends State<_RestorationTypeCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -252,12 +260,12 @@ class _RestorationTypeCardState extends State<_RestorationTypeCard> {
         padding: const EdgeInsets.all(28),
         constraints: const BoxConstraints(minHeight: 160),
         decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
+          color: theme.cardTheme.color,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _pressed ? AppColors.outlineVariant : Colors.transparent),
+          border: Border.all(color: _pressed ? colorScheme.outlineVariant : Colors.transparent),
           boxShadow: [
             BoxShadow(
-              color: AppColors.accent.withValues(alpha: _pressed ? 0.04 : 0.07),
+              color: colorScheme.secondary.withValues(alpha: _pressed ? 0.04 : 0.07),
               blurRadius: _pressed ? 10 : 24,
               offset: const Offset(0, 4),
             ),
@@ -272,24 +280,24 @@ class _RestorationTypeCardState extends State<_RestorationTypeCard> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainerHigh,
+                color: colorScheme.surfaceContainerHigh,
                 shape: BoxShape.circle,
               ),
-              child: Icon(widget.icon, size: 28, color: AppColors.primary),
+              child: Icon(widget.icon, size: 28, color: colorScheme.primary),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title, style: AppTypography.headlineMd.copyWith(color: AppColors.onBackground, fontSize: 20)),
+                  Text(widget.title, style: AppTypography.headlineMd.copyWith(color: colorScheme.onSurface, fontSize: 20)),
                   const SizedBox(height: 6),
-                  Text(widget.subtitle, style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                  Text(widget.subtitle, style: AppTypography.bodySm.copyWith(color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
             const SizedBox(width: 12),
-            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.outlineVariant),
+            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colorScheme.outlineVariant),
           ],
         ),
       ),
@@ -299,8 +307,13 @@ class _RestorationTypeCardState extends State<_RestorationTypeCard> {
 
 // Section aktivitas terbaru dari history.
 class _RecentActivitySection extends StatelessWidget {
+  final VoidCallback onViewAll;
+  const _RecentActivitySection({required this.onViewAll});
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return BlocBuilder<HistoryBloc, HistoryState>(
       builder: (context, state) {
         final items = state is HistoryLoaded ? state.filteredItems.take(2).toList() : <RestorationEntity>[];
@@ -310,13 +323,21 @@ class _RecentActivitySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Aktivitas Terbaru', style: AppTypography.headlineMd.copyWith(color: AppColors.onBackground)),
-                TextButton.icon(
-                  onPressed: () => context.push('/history'),
-                  icon: const Icon(Icons.arrow_forward, size: 16, color: AppColors.secondary),
-                  label: Text('Lihat Semua', style: AppTypography.labelMd.copyWith(color: AppColors.secondary)),
+                Flexible(
+                  child: Text('Aktivitas Terbaru', style: AppTypography.headlineMd.copyWith(color: colorScheme.onSurface)),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: onViewAll,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_forward, size: 14, color: colorScheme.secondary),
+                      const SizedBox(width: 4),
+                      Text('Lihat Semua', style: AppTypography.labelMd.copyWith(color: colorScheme.secondary, fontSize: 12)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -336,10 +357,10 @@ class _RecentActivitySection extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLowest,
+                        color: theme.cardTheme.color,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.surfaceContainerHigh),
-                        boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 4))],
+                        border: Border.all(color: colorScheme.surfaceContainerHigh),
+                        boxShadow: [BoxShadow(color: colorScheme.secondary.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 4))],
                       ),
                       child: Column(
                         children: items.asMap().entries.map((e) {
@@ -350,7 +371,7 @@ class _RecentActivitySection extends StatelessWidget {
                               _HistoryListItem(entity: item),
                               if (!isLast) ...[
                                 const SizedBox(height: 8),
-                                Divider(height: 1, color: AppColors.surfaceContainerHigh),
+                                Divider(height: 1, color: colorScheme.surfaceContainerHigh),
                                 const SizedBox(height: 8),
                               ],
                             ],
@@ -365,12 +386,12 @@ class _RecentActivitySection extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLowest,
+                        color: theme.cardTheme.color,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: AppColors.surfaceContainerHigh),
+                        border: Border.all(color: colorScheme.surfaceContainerHigh),
                       ),
                       child: Center(
-                        child: Text('Belum ada riwayat', style: AppTypography.bodySm.copyWith(color: AppColors.outline)),
+                        child: Text('Belum ada riwayat', style: AppTypography.bodySm.copyWith(color: colorScheme.outline)),
                       ),
                     ),
                   ),
@@ -390,23 +411,24 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.secondaryContainer.withValues(alpha: 0.25),
+        color: colorScheme.secondaryContainer.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.secondaryContainer.withValues(alpha: 0.4)),
+        border: Border.all(color: colorScheme.secondaryContainer.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '$count',
-            style: GoogleFonts.manrope(fontSize: 48, fontWeight: FontWeight.w300, color: AppColors.onBackground, height: 1),
+            style: GoogleFonts.manrope(fontSize: 48, fontWeight: FontWeight.w300, color: colorScheme.onSurface, height: 1),
           ),
           const SizedBox(height: 4),
-          Text('Foto', style: AppTypography.labelMd.copyWith(color: AppColors.onSurfaceVariant, letterSpacing: 1)),
-          Text('Terrestorasi', style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+          Text('Foto', style: AppTypography.labelMd.copyWith(color: colorScheme.onSurfaceVariant, letterSpacing: 1)),
+          Text('Terrestorasi', style: AppTypography.bodySm.copyWith(color: colorScheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -420,19 +442,20 @@ class _HistoryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         // Thumbnail atau icon placeholder
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(color: AppColors.surfaceContainerHigh, borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(8)),
           child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.file(
                   File(entity.thumbnailPath),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const Icon(Icons.image_outlined, size: 20, color: AppColors.outline),
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.image_outlined, size: 20, color: colorScheme.outline),
                 ),
               ),
         ),
@@ -441,15 +464,15 @@ class _HistoryListItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(entity.modelType, style: AppTypography.labelMd.copyWith(color: AppColors.onBackground), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(entity.modelType, style: AppTypography.labelMd.copyWith(color: colorScheme.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis),
               Text(
                 _formatDate(entity.createdAt),
-                style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                style: AppTypography.bodySm.copyWith(color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),
         ),
-        const Icon(Icons.check_circle_outline, color: AppColors.secondary, size: 20),
+        Icon(Icons.check_circle_outline, color: colorScheme.secondary, size: 20),
       ],
     );
   }

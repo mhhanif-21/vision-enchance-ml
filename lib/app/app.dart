@@ -29,6 +29,8 @@ class LuminaRestoreApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: state.settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          locale: const Locale('en', 'US'),
+          supportedLocales: const [Locale('en', 'US')],
           routerConfig: _router,
           debugShowCheckedModeBanner: false,
         );

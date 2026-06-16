@@ -190,9 +190,9 @@ class _UploadPageState extends State<UploadPage> {
             // Info cards
             Row(
               children: [
-                Expanded(child: _InfoCard(icon: Icons.photo_size_select_actual_outlined, title: 'Batas Ukuran File', body: 'Maksimal 20MB. Pastikan gambar tidak terkompresi berlebihan.')),
+                Expanded(child: _InfoCard(icon: Icons.photo_size_select_actual_outlined, title: 'Batas Ukuran File', body: 'Maksimal 20MB')),
                 const SizedBox(width: 16),
-                Expanded(child: _InfoCard(icon: Icons.security_outlined, title: 'Privasi Terjamin', body: 'Foto Anda diproses secara lokal dan tidak pernah dibagikan.')),
+                Expanded(child: _InfoCard(icon: Icons.security_outlined, title: 'Privasi Terjamin', body: 'Foto Anda diproses secara lokal')),
               ],
             ),
           ],
