@@ -110,28 +110,6 @@ class RestorationDetailPage extends StatelessWidget {
               child: _MetadataCard(entity: entity),
             ),
             const SizedBox(height: 32),
-            // Add to album section
-            Center(
-              child: Column(
-                children: [
-                  Text('Simpan kenangan ini', style: AppTypography.headlineMd.copyWith(color: AppColors.onSurface)),
-                  const SizedBox(height: 6),
-                  Text('Tambahkan ke album untuk koleksi yang lebih rapi.', style: AppTypography.bodyMd.copyWith(color: AppColors.outline)),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add_to_photos_outlined),
-                    label: const Text('Tambah ke Album'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.secondary,
-                      side: const BorderSide(color: AppColors.secondary),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    ),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 80),
           ],
         ),

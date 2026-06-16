@@ -10,7 +10,6 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/before_after_slider.dart';
 import '../../history/bloc/history_bloc.dart';
-import '../../album/bloc/album_bloc.dart';
 import '../models/restoration_result.dart';
 import '../repositories/save_restoration_usecase.dart';
 import '../../history/models/restoration_entity.dart';

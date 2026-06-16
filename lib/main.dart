@@ -7,7 +7,6 @@ import 'core/storage/hive_setup.dart';
 import 'core/di/injection.dart';
 import 'features/history/bloc/history_bloc.dart';
 import 'features/restore/bloc/restore_bloc.dart';
-import 'features/album/bloc/album_bloc.dart';
 import 'features/settings/bloc/settings_bloc.dart';
 import 'app/app.dart';
 
@@ -27,16 +26,13 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(
+        BlocProvider<HistoryBloc>(
           create: (_) => sl<HistoryBloc>()..add(LoadHistory()),
         ),
-        BlocProvider(
+        BlocProvider<RestoreBloc>(
           create: (_) => sl<RestoreBloc>(),
         ),
-        BlocProvider(
-          create: (_) => sl<AlbumBloc>()..add(LoadAlbums()),
-        ),
-        BlocProvider(
+        BlocProvider<SettingsBloc>(
           create: (_) => sl<SettingsBloc>()..add(LoadSettings()),
         ),
       ],

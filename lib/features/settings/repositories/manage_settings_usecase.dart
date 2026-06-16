@@ -10,7 +10,6 @@ class ManageSettingsUseCase {
   Future<SettingsEntity> getSettings() => repository.getSettings();
   Future<void> saveSettings(SettingsEntity settings) => repository.saveSettings(settings);
   Future<void> clearHistory() => repository.clearHistory();
-  Future<void> clearAlbums() => repository.clearAlbums();
   Future<int> calculateStorageUsed() => repository.calculateStorageUsed();
 
   // Mengubah tema dan menyimpannya secara atomik.

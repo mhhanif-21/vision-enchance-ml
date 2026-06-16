@@ -10,9 +10,7 @@ import '../features/restore/ui/processing_page.dart';
 import '../features/restore/ui/result_page.dart';
 import '../features/restore/ui/restoration_detail_page.dart';
 import '../features/history/ui/history_page.dart';
-import '../features/album/ui/album_detail_page.dart';
 import '../features/settings/ui/settings_page.dart';
-import '../features/album/models/album_entity.dart';
 import '../core/constants/model_config.dart';
 import '../features/restore/models/restoration_result.dart';
 import '../features/history/models/restoration_entity.dart';
@@ -81,13 +79,6 @@ final _router = GoRouter(
     GoRoute(
       path: '/history',
       builder: (context, state) => const HistoryPage(),
-    ),
-    GoRoute(
-      path: '/album-detail',
-      builder: (context, state) {
-        final album = state.extra as AlbumEntity;
-        return AlbumDetailPage(album: album);
-      },
     ),
     GoRoute(
       path: '/settings',

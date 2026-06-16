@@ -33,8 +33,6 @@ class ToggleAutoSave extends SettingsEvent {
 
 class ClearHistoryCache extends SettingsEvent {}
 
-class ClearAlbumsCache extends SettingsEvent {}
-
 class RefreshStorageUsage extends SettingsEvent {}
 
 // --- State ---
@@ -84,7 +82,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<ToggleTheme>(_onToggleTheme);
     on<ToggleAutoSave>(_onToggleAutoSave);
     on<ClearHistoryCache>(_onClearHistoryCache);
-    on<ClearAlbumsCache>(_onClearAlbumsCache);
     on<RefreshStorageUsage>(_onRefreshStorageUsage);
   }
 
@@ -125,16 +122,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       emit(state.copyWith(isLoading: false, successMessage: 'Riwayat berhasil dihapus.'));
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: 'Gagal menghapus riwayat: $e'));
-    }
-  }
-
-  Future<void> _onClearAlbumsCache(ClearAlbumsCache event, Emitter<SettingsState> emit) async {
-    emit(state.copyWith(isLoading: true));
-    try {
-      await useCase.clearAlbums();
-      emit(state.copyWith(isLoading: false, successMessage: 'Album berhasil dihapus.'));
-    } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: 'Gagal menghapus album: $e'));
     }
   }
 

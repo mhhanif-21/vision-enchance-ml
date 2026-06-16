@@ -7,12 +7,10 @@ import '../repositories/i_settings_repository.dart';
 import '../models/settings_entity.dart';
 import '../models/settings_model.dart';
 import '../../history/models/restoration_model.dart';
-import '../../album/models/album_model.dart';
 
 class SettingsRepositoryImpl implements ISettingsRepository {
   static const String _settingsBoxName = 'settings_box';
   static const String _historyBoxName = 'history_box';
-  static const String _albumsBoxName = 'albums_box';
 
   @override
   Future<SettingsEntity> getSettings() async {
@@ -29,12 +27,6 @@ class SettingsRepositoryImpl implements ISettingsRepository {
   @override
   Future<void> clearHistory() async {
     final box = Hive.box<RestorationModel>(_historyBoxName);
-    await box.clear();
-  }
-
-  @override
-  Future<void> clearAlbums() async {
-    final box = Hive.box<AlbumModel>(_albumsBoxName);
     await box.clear();
   }
 

@@ -6,7 +6,6 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../bloc/settings_bloc.dart';
 import '../../history/bloc/history_bloc.dart';
-import '../../album/bloc/album_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -158,16 +157,13 @@ class _DataManagementSection extends StatelessWidget {
             trailing: const Icon(Icons.warning_amber_rounded, color: AppColors.errorContainer),
             onTap: () {
               final historyBloc = context.read<HistoryBloc>();
-              final albumBloc = context.read<AlbumBloc>();
               _showClearDialog(
                 context,
                 title: 'Hapus Semua Data?',
                 onConfirm: () {
                   context.read<SettingsBloc>().add(ClearHistoryCache());
-                  context.read<SettingsBloc>().add(ClearAlbumsCache());
                   Future.delayed(const Duration(milliseconds: 300), () {
                     historyBloc.add(LoadHistory());
-                    albumBloc.add(LoadAlbums());
                   });
                 },
                 isDanger: true,
