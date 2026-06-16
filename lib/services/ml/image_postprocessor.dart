@@ -17,7 +17,7 @@ class PostprocessResult {
 
 class ImagePostprocessor {
   PostprocessResult postprocess({
-    required List<double> outputData,
+    required Float32List outputData,
     required int width,
     required int height,
     required ModelType modelType,
@@ -25,32 +25,15 @@ class ImagePostprocessor {
     int? targetHeight,
   }) {
     final image = img.Image(width: width, height: height);
-    final pixels = width * height;
 
-    if (modelType == ModelType.deblurring) {
-      // Decode NCHW: [1, 3, H, W]
-      int rIdx = 0;
-      int gIdx = pixels;
-      int bIdx = pixels * 2;
-
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          final r = _clampToByte(outputData[rIdx++] * 255.0);
-          final g = _clampToByte(outputData[gIdx++] * 255.0);
-          final b = _clampToByte(outputData[bIdx++] * 255.0);
-          image.setPixelRgb(x, y, r, g, b);
-        }
-      }
-    } else {
-      // Decode NHWC: [1, H, W, 3]
-      int idx = 0;
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          final r = _clampToByte(outputData[idx++] * 255.0);
-          final g = _clampToByte(outputData[idx++] * 255.0);
-          final b = _clampToByte(outputData[idx++] * 255.0);
-          image.setPixelRgb(x, y, r, g, b);
-        }
+    // Decode NHWC: [1, H, W, 3]
+    int idx = 0;
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final r = _clampToByte(outputData[idx++] * 255.0);
+        final g = _clampToByte(outputData[idx++] * 255.0);
+        final b = _clampToByte(outputData[idx++] * 255.0);
+        image.setPixelRgb(x, y, r, g, b);
       }
     }
 
@@ -75,6 +58,8 @@ class ImagePostprocessor {
   }
 
   int _clampToByte(double value) {
+    if (value.isNaN) return 0;
+    if (value.isInfinite) return value < 0 ? 0 : 255;
     if (value < 0) return 0;
     if (value > 255) return 255;
     return value.round();

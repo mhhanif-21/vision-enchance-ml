@@ -1,26 +1,28 @@
-// Payload serializable yang dikirim ke background isolate untuk proses inferensi.
-// Seluruh field harus dapat ditransfer antar isolate (primitif atau Uint8List).
 import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import '../../core/constants/model_config.dart';
 
 class InferenceIsolateInput {
   final Float32List tensorData;
   final int width;
   final int height;
-  final bool isNchw;
+  final ModelType modelType;
   final String assetPath;
+  final RootIsolateToken rootIsolateToken;
 
   InferenceIsolateInput({
     required this.tensorData,
     required this.width,
     required this.height,
-    required this.isNchw,
+    required this.modelType,
     required this.assetPath,
+    required this.rootIsolateToken,
   });
 }
 
 // Hasil mentah dari inferensi yang dikembalikan dari background isolate.
 class InferenceIsolateOutput {
-  final List<double> outputData;
+  final Float32List outputData;
   final int width;
   final int height;
 

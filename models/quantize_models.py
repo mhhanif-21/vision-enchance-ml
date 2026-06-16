@@ -7,7 +7,7 @@ def quantize_to_fp16(input_model_path, output_model_path):
     print(f"Mengonversi {input_model_path} ke FP16...")
     try:
         model = onnx.load(input_model_path)
-        model_fp16 = convert_float_to_float16(model)
+        model_fp16 = convert_float_to_float16(model, keep_io_types=True)
         onnx.save(model_fp16, output_model_path)
         print(f"Selesai! Tersimpan di {output_model_path}")
     except Exception as e:

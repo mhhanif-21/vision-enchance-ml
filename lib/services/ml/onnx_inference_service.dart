@@ -1,6 +1,7 @@
 // Layanan inferensi utama yang mengimplementasikan IRestoreRepository.
 // Memisahkan pipeline menjadi 3 tahap dan menjalankan inferensi berat di isolate.
 import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import '../../core/constants/model_config.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/utils/memory_utils.dart';
@@ -46,12 +47,14 @@ class OnnxInferenceService implements IRestoreRepository {
 
       // Tahap 2: inferensi AI di background isolate (berat, 5-30 detik).
       onStepChanged?.call(RestorationStep.inferencing);
+      final rootToken = RootIsolateToken.instance!;
       final inferenceOutput = await runInIsolate(InferenceIsolateInput(
         tensorData: preprocessed.tensorData,
         width: preprocessed.width,
         height: preprocessed.height,
-        isNchw: modelType == ModelType.deblurring,
+        modelType: modelType,
         assetPath: modelType.assetPath,
+        rootIsolateToken: rootToken,
       ));
 
       // Tahap 3: pasca-proses hasil di main thread (cepat, ~100ms).

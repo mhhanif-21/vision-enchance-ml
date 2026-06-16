@@ -24,10 +24,11 @@ class PreprocessResult {
 class ImagePreprocessor {
   PreprocessResult preprocess(Uint8List imageBytes, ModelType modelType) {
     try {
-      final decoded = img.decodeImage(imageBytes);
+      var decoded = img.decodeImage(imageBytes);
       if (decoded == null) {
         throw const ImageProcessingException('Failed to decode image');
       }
+      decoded = img.bakeOrientation(decoded);
 
       final originalWidth = decoded.width;
       final originalHeight = decoded.height;
@@ -88,33 +89,15 @@ class ImagePreprocessor {
   }
 
   Float32List _normalizeToFloat32(img.Image image, ModelType modelType) {
-    final pixels = image.width * image.height;
     final tensor = Float32List(1 * image.height * image.width * 3);
 
-    if (modelType == ModelType.deblurring) {
-      // NCHW format for NAFNet: [1, 3, H, W]
-      int rIdx = 0;
-      int gIdx = pixels;
-      int bIdx = pixels * 2;
-
-      for (int y = 0; y < image.height; y++) {
-        for (int x = 0; x < image.width; x++) {
-          final pixel = image.getPixel(x, y);
-          tensor[rIdx++] = pixel.r / 255.0;
-          tensor[gIdx++] = pixel.g / 255.0;
-          tensor[bIdx++] = pixel.b / 255.0;
-        }
-      }
-    } else {
-      // NHWC format for Zero-DCE: [1, H, W, 3]
-      int idx = 0;
-      for (int y = 0; y < image.height; y++) {
-        for (int x = 0; x < image.width; x++) {
-          final pixel = image.getPixel(x, y);
-          tensor[idx++] = pixel.r / 255.0;
-          tensor[idx++] = pixel.g / 255.0;
-          tensor[idx++] = pixel.b / 255.0;
-        }
+    int idx = 0;
+    for (int y = 0; y < image.height; y++) {
+      for (int x = 0; x < image.width; x++) {
+        final pixel = image.getPixel(x, y);
+        tensor[idx++] = pixel.r / 255.0;
+        tensor[idx++] = pixel.g / 255.0;
+        tensor[idx++] = pixel.b / 255.0;
       }
     }
     return tensor;
