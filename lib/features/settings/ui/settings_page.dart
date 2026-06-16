@@ -5,14 +5,19 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../bloc/settings_bloc.dart';
+import '../../history/bloc/history_bloc.dart';
+import '../../album/bloc/album_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocConsumer<SettingsBloc, SettingsState>(
         listener: (context, state) {
           if (state.errorMessage != null) {
@@ -26,37 +31,29 @@ class SettingsPage extends StatelessWidget {
           }
         },
         builder: (context, state) {
-          final isDark = state.settings.isDarkMode;
-
           return CustomScrollView(
             slivers: [
-              _buildAppBar(),
+              _buildAppBar(context),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    // Page header
-                    Text('Settings', style: AppTypography.headlineLg.copyWith(color: AppColors.onSurface)),
+                    Text('Settings', style: AppTypography.headlineLg.copyWith(color: colorScheme.onSurface)),
                     const SizedBox(height: 6),
                     Text(
                       'Konfigurasi preferensi aplikasi dan manajemen data.',
-                      style: AppTypography.bodyLg.copyWith(color: AppColors.onSurfaceVariant),
+                      style: AppTypography.bodyLg.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 32),
-                    // Grid 2 section: Display + App Behavior
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _DisplaySection(isDark: isDark)),
-                        const SizedBox(width: 16),
-                        Expanded(child: _AppBehaviorSection(isDark: isDark)),
-                      ],
-                    ),
+                    // Section Display
+                    _DisplaySection(isDark: state.settings.isDarkMode),
                     const SizedBox(height: 16),
-                    // Data Management (full width)
+                    // Section App Behavior
+                    _AppBehaviorSection(isAutoSave: state.settings.isAutoSave),
+                    const SizedBox(height: 16),
+                    // Data Management
                     _DataManagementSection(),
                     const SizedBox(height: 24),
-                    // Version info
                     Center(
                       child: Text(
                         'Lumina Restore v1.0.0 (Offline Edition)',
@@ -73,23 +70,25 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  SliverAppBar _buildAppBar() {
+  SliverAppBar _buildAppBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SliverAppBar(
-      backgroundColor: const Color(0xFFFDFCF8),
+      backgroundColor: colorScheme.surface,
       pinned: true,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0.5,
-      shadowColor: AppColors.accent.withValues(alpha: 0.06),
+      shadowColor: colorScheme.secondary.withValues(alpha: 0.06),
+      automaticallyImplyLeading: false,
       title: Text(
         'Settings',
-        style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.onBackground),
+        style: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.w700, color: colorScheme.onSurface),
       ),
     );
   }
 }
 
-// Section tampilan: dark theme toggle dan language.
+// Section tampilan: dark theme toggle dan bahasa.
 class _DisplaySection extends StatelessWidget {
   final bool isDark;
   const _DisplaySection({required this.isDark});
@@ -99,24 +98,14 @@ class _DisplaySection extends StatelessWidget {
     return _SectionCard(
       title: 'DISPLAY',
       children: [
-        // Dark mode toggle
         _SettingRow(
           icon: Icons.dark_mode_outlined,
           title: 'Dark Theme',
-          subtitle: 'Sesuaikan tampilan aplikasi',
+          subtitle: isDark ? 'Mode gelap aktif' : 'Mode terang aktif',
           trailing: _CustomSwitch(
             value: isDark,
             onChanged: (v) => context.read<SettingsBloc>().add(ToggleTheme(v)),
           ),
-        ),
-        const SizedBox(height: 4),
-        // Language (non-functional info only)
-        _SettingRow(
-          icon: Icons.language_outlined,
-          title: 'Bahasa',
-          subtitle: 'Indonesia',
-          trailing: const Icon(Icons.chevron_right, color: AppColors.outlineVariant),
-          onTap: () {},
         ),
       ],
     );
@@ -125,8 +114,8 @@ class _DisplaySection extends StatelessWidget {
 
 // Section perilaku aplikasi: auto-save toggle.
 class _AppBehaviorSection extends StatelessWidget {
-  final bool isDark;
-  const _AppBehaviorSection({required this.isDark});
+  final bool isAutoSave;
+  const _AppBehaviorSection({required this.isAutoSave});
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +125,11 @@ class _AppBehaviorSection extends StatelessWidget {
         _SettingRow(
           icon: Icons.save_outlined,
           title: 'Auto-save',
-          subtitle: 'Simpan perubahan otomatis',
-          trailing: _CustomSwitch(value: true, onChanged: (_) {}),
+          subtitle: isAutoSave ? 'Simpan otomatis aktif' : 'Simpan otomatis nonaktif',
+          trailing: _CustomSwitch(
+            value: isAutoSave,
+            onChanged: (v) => context.read<SettingsBloc>().add(ToggleAutoSave(v)),
+          ),
         ),
       ],
     );
@@ -151,49 +143,7 @@ class _DataManagementSection extends StatelessWidget {
     return _SectionCard(
       title: 'DATA MANAGEMENT',
       children: [
-        _DataActionRow(
-          icon: Icons.settings_backup_restore_outlined,
-          title: 'Backup / Restore',
-          subtitle: 'Ekspor atau impor data aplikasi',
-          trailing: const Icon(Icons.file_download_outlined, color: AppColors.outlineVariant),
-          onTap: () {},
-        ),
         const SizedBox(height: 8),
-        _DataActionRow(
-          icon: Icons.folder_open_outlined,
-          title: 'Lokasi Penyimpanan',
-          subtitle: '/Documents/LuminaRestore',
-          trailing: const Icon(Icons.edit_outlined, color: AppColors.outlineVariant),
-          onTap: () {},
-        ),
-        const SizedBox(height: 8),
-        // Clear history
-        _DataActionRow(
-          icon: Icons.history_outlined,
-          title: 'Hapus Riwayat',
-          subtitle: 'Menghapus semua riwayat restorasi',
-          trailing: const Icon(Icons.delete_sweep_outlined, color: AppColors.outline),
-          onTap: () => _showClearDialog(
-            context,
-            title: 'Hapus Riwayat?',
-            onConfirm: () => context.read<SettingsBloc>().add(ClearHistoryCache()),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Clear albums
-        _DataActionRow(
-          icon: Icons.photo_album_outlined,
-          title: 'Hapus Album',
-          subtitle: 'Menghapus semua album yang dibuat',
-          trailing: const Icon(Icons.delete_sweep_outlined, color: AppColors.outline),
-          onTap: () => _showClearDialog(
-            context,
-            title: 'Hapus Album?',
-            onConfirm: () => context.read<SettingsBloc>().add(ClearAlbumsCache()),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Delete all data (danger zone)
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -206,15 +156,23 @@ class _DataManagementSection extends StatelessWidget {
             iconColor: AppColors.error,
             titleColor: AppColors.error,
             trailing: const Icon(Icons.warning_amber_rounded, color: AppColors.errorContainer),
-            onTap: () => _showClearDialog(
-              context,
-              title: 'Hapus Semua Data?',
-              onConfirm: () {
-                context.read<SettingsBloc>().add(ClearHistoryCache());
-                context.read<SettingsBloc>().add(ClearAlbumsCache());
-              },
-              isDanger: true,
-            ),
+            onTap: () {
+              final historyBloc = context.read<HistoryBloc>();
+              final albumBloc = context.read<AlbumBloc>();
+              _showClearDialog(
+                context,
+                title: 'Hapus Semua Data?',
+                onConfirm: () {
+                  context.read<SettingsBloc>().add(ClearHistoryCache());
+                  context.read<SettingsBloc>().add(ClearAlbumsCache());
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    historyBloc.add(LoadHistory());
+                    albumBloc.add(LoadAlbums());
+                  });
+                },
+                isDanger: true,
+              );
+            },
           ),
         ),
       ],
@@ -248,18 +206,20 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: 0.04), blurRadius: 32, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: theme.colorScheme.secondary.withValues(alpha: 0.04), blurRadius: 32, offset: const Offset(0, 8))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTypography.labelMd.copyWith(color: AppColors.onSurfaceVariant, letterSpacing: 2)),
-          Divider(height: 24, color: AppColors.surfaceVariant),
+          Text(title, style: AppTypography.labelMd.copyWith(color: theme.colorScheme.onSurfaceVariant, letterSpacing: 2)),
+          Divider(height: 24, color: theme.colorScheme.surfaceContainerHigh),
           ...children,
         ],
       ),
@@ -273,15 +233,14 @@ class _SettingRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final Widget trailing;
-  final VoidCallback? onTap;
 
-  const _SettingRow({required this.icon, required this.title, required this.subtitle, required this.trailing, this.onTap});
+  const _SettingRow({required this.icon, required this.title, required this.subtitle, required this.trailing});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Row(
@@ -289,16 +248,16 @@ class _SettingRow extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: AppColors.surfaceContainer, shape: BoxShape.circle),
-              child: Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
+              decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh, shape: BoxShape.circle),
+              child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTypography.bodyMd.copyWith(color: AppColors.onSurface)),
-                  Text(subtitle, style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+                  Text(title, style: AppTypography.bodyMd.copyWith(color: colorScheme.onSurface)),
+                  Text(subtitle, style: AppTypography.bodySm.copyWith(color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -332,6 +291,7 @@ class _DataActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -343,7 +303,7 @@ class _DataActionRow extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: iconColor == AppColors.error ? AppColors.errorContainer.withValues(alpha: 0.2) : AppColors.surfaceContainer,
+                color: iconColor == AppColors.error ? colorScheme.errorContainer.withValues(alpha: 0.2) : colorScheme.surfaceContainerHigh,
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 20, color: iconColor),
@@ -354,7 +314,7 @@ class _DataActionRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: AppTypography.bodyMd.copyWith(color: titleColor, fontWeight: titleColor == AppColors.error ? FontWeight.w500 : FontWeight.w400)),
-                  Text(subtitle, style: AppTypography.bodySm.copyWith(color: titleColor == AppColors.error ? AppColors.error.withValues(alpha: 0.7) : AppColors.onSurfaceVariant)),
+                  Text(subtitle, style: AppTypography.bodySm.copyWith(color: titleColor == AppColors.error ? colorScheme.error.withValues(alpha: 0.7) : colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),

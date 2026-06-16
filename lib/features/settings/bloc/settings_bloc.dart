@@ -1,5 +1,4 @@
-// BLoC untuk pengaturan aplikasi dengan state yang bersih dan proper.
-// Menghilangkan anti-pattern penggunaan field error sebagai pesan sukses.
+// BLoC untuk pengaturan aplikasi.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../models/settings_entity.dart';
@@ -24,13 +23,18 @@ class ToggleTheme extends SettingsEvent {
   List<Object> get props => [isDarkMode];
 }
 
-// Event untuk menghapus seluruh riwayat restorasi.
+class ToggleAutoSave extends SettingsEvent {
+  final bool isAutoSave;
+  const ToggleAutoSave(this.isAutoSave);
+
+  @override
+  List<Object> get props => [isAutoSave];
+}
+
 class ClearHistoryCache extends SettingsEvent {}
 
-// Event untuk menghapus seluruh data album.
 class ClearAlbumsCache extends SettingsEvent {}
 
-// Event untuk memperbarui kalkulasi penggunaan storage.
 class RefreshStorageUsage extends SettingsEvent {}
 
 // --- State ---
@@ -78,15 +82,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   SettingsBloc({required this.useCase}) : super(SettingsState.initial()) {
     on<LoadSettings>(_onLoadSettings);
     on<ToggleTheme>(_onToggleTheme);
+    on<ToggleAutoSave>(_onToggleAutoSave);
     on<ClearHistoryCache>(_onClearHistoryCache);
     on<ClearAlbumsCache>(_onClearAlbumsCache);
     on<RefreshStorageUsage>(_onRefreshStorageUsage);
   }
 
-  Future<void> _onLoadSettings(
-    LoadSettings event,
-    Emitter<SettingsState> emit,
-  ) async {
+  Future<void> _onLoadSettings(LoadSettings event, Emitter<SettingsState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
       final settings = await useCase.getSettings();
@@ -98,18 +100,25 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> _onToggleTheme(ToggleTheme event, Emitter<SettingsState> emit) async {
     try {
-      await useCase.toggleDarkMode(event.isDarkMode);
       final updated = state.settings.copyWith(isDarkMode: event.isDarkMode, updatedAt: DateTime.now());
+      await useCase.saveSettings(updated);
       emit(state.copyWith(settings: updated));
     } catch (e) {
       emit(state.copyWith(errorMessage: 'Gagal mengubah tema: $e'));
     }
   }
 
-  Future<void> _onClearHistoryCache(
-    ClearHistoryCache event,
-    Emitter<SettingsState> emit,
-  ) async {
+  Future<void> _onToggleAutoSave(ToggleAutoSave event, Emitter<SettingsState> emit) async {
+    try {
+      final updated = state.settings.copyWith(isAutoSave: event.isAutoSave, updatedAt: DateTime.now());
+      await useCase.saveSettings(updated);
+      emit(state.copyWith(settings: updated));
+    } catch (e) {
+      emit(state.copyWith(errorMessage: 'Gagal mengubah auto-save: $e'));
+    }
+  }
+
+  Future<void> _onClearHistoryCache(ClearHistoryCache event, Emitter<SettingsState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
       await useCase.clearHistory();
@@ -119,10 +128,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  Future<void> _onClearAlbumsCache(
-    ClearAlbumsCache event,
-    Emitter<SettingsState> emit,
-  ) async {
+  Future<void> _onClearAlbumsCache(ClearAlbumsCache event, Emitter<SettingsState> emit) async {
     emit(state.copyWith(isLoading: true));
     try {
       await useCase.clearAlbums();
@@ -132,17 +138,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  // Menghitung ulang ukuran folder penyimpanan aplikasi.
-  Future<void> _onRefreshStorageUsage(
-    RefreshStorageUsage event,
-    Emitter<SettingsState> emit,
-  ) async {
+  Future<void> _onRefreshStorageUsage(RefreshStorageUsage event, Emitter<SettingsState> emit) async {
     try {
       final bytes = await useCase.calculateStorageUsed();
       final updated = state.settings.copyWith(storageUsedBytes: bytes, updatedAt: DateTime.now());
       emit(state.copyWith(settings: updated));
-    } catch (_) {
-      // Gagal kalkulasi storage bukan error kritis, abaikan saja.
-    }
+    } catch (_) {}
   }
 }
