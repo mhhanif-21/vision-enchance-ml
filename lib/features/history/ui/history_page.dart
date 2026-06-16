@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:gal/gal.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../bloc/history_bloc.dart';
@@ -202,18 +203,53 @@ class _HistoryCardState extends State<_HistoryCard> {
           // Title dan date
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  widget.entity.modelType == 'deblurring' ? 'Perbaikan Blur' : 'Peningkatan Low-Light',
-                  style: AppTypography.headlineMd.copyWith(fontSize: 15, color: AppColors.onSurface),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.entity.modelType == 'deblurring' ? 'Perbaikan Blur' : 'Peningkatan Low-Light',
+                        style: AppTypography.headlineMd.copyWith(fontSize: 15, color: AppColors.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'Direstorasi ${DateFormat('d MMM yyyy', 'id').format(widget.entity.createdAt)}',
+                        style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Direstorasi ${DateFormat('d MMM yyyy', 'id').format(widget.entity.createdAt)}',
-                  style: AppTypography.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                IconButton(
+                  icon: const Icon(Icons.download_outlined, color: AppColors.secondary),
+                  onPressed: () async {
+                    try {
+                      final hasAccess = await Gal.requestAccess();
+                      if (hasAccess) {
+                        final bytes = await File(widget.entity.restoredImagePath).readAsBytes();
+                        await Gal.putImageBytes(bytes, album: 'Lumina');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Berhasil disimpan ke Galeri HP')),
+                          );
+                        }
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Izin galeri ditolak.')),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Gagal menyimpan: $e')),
+                        );
+                      }
+                    }
+                  },
                 ),
               ],
             ),
